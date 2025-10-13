@@ -1,0 +1,315 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Eye, X, Code, Target, BarChart3, Atom, Rocket, Users, Sparkles, ChevronLeft, Check } from 'lucide-react'
+
+export default function OnboardingPage() {
+  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [customPreferences, setCustomPreferences] = useState('')
+  const [formData, setFormData] = useState({
+    role: '',
+    industries: [] as string[],
+    contentTypes: [] as string[]
+  })
+
+  const totalSteps = 3
+
+  const roles = [
+    { id: 'software-engineer', title: 'Software Engineer', description: 'Building applications and systems', icon: <Code className="w-5 h-5" /> },
+    { id: 'product-manager', title: 'Product Manager', description: 'Managing product strategy and roadmap', icon: <Target className="w-5 h-5" /> },
+    { id: 'data-scientist', title: 'Data Scientist', description: 'Analyzing data and building models', icon: <BarChart3 className="w-5 h-5" /> },
+    { id: 'ai-researcher', title: 'AI Researcher', description: 'Researching artificial intelligence', icon: <Atom className="w-5 h-5" /> },
+    { id: 'startup-founder', title: 'Startup Founder', description: 'Building and scaling startups', icon: <Rocket className="w-5 h-5" /> },
+    { id: 'tech-consultant', title: 'Technology Consultant', description: 'Advising on technology solutions', icon: <Users className="w-5 h-5" /> }
+  ]
+
+  const industries = [
+    'Healthcare & Life Sciences',
+    'Financial Services', 
+    'Technology & Software',
+    'Manufacturing',
+    'Retail & E-commerce',
+    'Education',
+    'Media & Entertainment',
+    'Transportation',
+    'Energy & Utilities',
+    'Government & Public Sector'
+  ]
+
+  const contentTypes = [
+    { id: 'breaking-news', label: 'Breaking News' },
+    { id: 'tool-releases', label: 'Tool Releases' },
+    { id: 'research-papers', label: 'Research Papers' },
+    { id: 'industry-analysis', label: 'Industry Analysis' },
+    { id: 'technical-tutorials', label: 'Technical Tutorials' },
+    { id: 'company-updates', label: 'Company Updates' },
+    { id: 'funding-investments', label: 'Funding & Investments' },
+    { id: 'regulatory-changes', label: 'Regulatory Changes' },
+    { id: 'open-source', label: 'Open Source Projects' },
+    { id: 'conference-updates', label: 'Conference Updates' }
+  ]
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const selectRole = (roleId: string) => {
+    setFormData({ ...formData, role: roleId })
+  }
+
+  const toggleIndustry = (industry: string) => {
+    const industries = formData.industries.includes(industry)
+      ? formData.industries.filter(i => i !== industry)
+      : [...formData.industries, industry]
+    setFormData({ ...formData, industries })
+  }
+
+  const toggleContentType = (contentTypeId: string) => {
+    const contentTypes = formData.contentTypes.includes(contentTypeId)
+      ? formData.contentTypes.filter(id => id !== contentTypeId)
+      : [...formData.contentTypes, contentTypeId]
+    setFormData({ ...formData, contentTypes })
+  }
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1: return "What's your role?"
+      case 2: return "Which industries interest you?"
+      case 3: return "What type of content do you want?"
+      default: return ""
+    }
+  }
+
+  const getStepDescription = () => {
+    switch (currentStep) {
+      case 1: return "Help us understand your professional background to personalize your AI news feed."
+      case 2: return "Select all industries you'd like to follow (you can choose multiple)."
+      case 3: return "Choose the types of AI content you'd like to see in your daily brief."
+      default: return ""
+    }
+  }
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+            {roles.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => selectRole(role.id)}
+                className={`seer-card-interactive p-6 text-left transition-all duration-300 ${
+                  formData.role === role.id 
+                    ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
+                    : 'hover:border-seer-teal/30'
+                }`}
+              >
+                <div className="flex items-start space-x-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    formData.role === role.id 
+                      ? 'bg-seer-teal text-white' 
+                      : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {role.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1">{role.title}</h3>
+                    <p className="text-slate-600 text-sm">{role.description}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )
+
+      case 2:
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              {industries.map((industry) => (
+                <button
+                  key={industry}
+                  onClick={() => toggleIndustry(industry)}
+                  className={`seer-card-interactive p-4 text-left transition-all duration-300 relative ${
+                    formData.industries.includes(industry)
+                      ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
+                      : 'hover:border-seer-teal/30'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-slate-900">{industry}</span>
+                    {formData.industries.includes(industry) && (
+                      <div className="w-6 h-6 bg-seer-teal rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 text-center">
+              Selected {formData.industries.length} of {industries.length} industries
+            </p>
+          </div>
+        )
+
+      case 3:
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+              {contentTypes.map((contentType) => (
+                <button
+                  key={contentType.id}
+                  onClick={() => toggleContentType(contentType.id)}
+                  className={`seer-card-interactive p-4 text-center transition-all duration-300 relative ${
+                    formData.contentTypes.includes(contentType.id)
+                      ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
+                      : 'hover:border-seer-teal/30'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-900 flex-1">{contentType.label}</span>
+                    {formData.contentTypes.includes(contentType.id) && (
+                      <div className="w-5 h-5 bg-seer-teal rounded-full flex items-center justify-center ml-2">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 text-center">
+              Selected {formData.contentTypes.length} content types
+            </p>
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
+            </div>
+            <button 
+              onClick={() => router.push('/')}
+              className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Progress Bar */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="w-full px-6 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-slate-600">Step {currentStep} of {totalSteps}</span>
+            <span className="text-sm text-slate-500">{Math.round((currentStep / totalSteps) * 100)}% complete</span>
+          </div>
+          <div className="w-full bg-slate-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-seer-teal to-seer-teal-hover h-2 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 w-full px-6 py-12">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center space-x-2 bg-seer-light-teal/50 backdrop-blur-sm text-seer-dark-teal px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-seer-teal/20">
+            <Sparkles className="w-4 h-4" />
+            <span>Personalization Setup</span>
+          </div>
+          
+          <h1 className="text-heading-1 text-slate-900 mb-4">
+            {getStepTitle()}
+          </h1>
+          <p className="text-body-large text-slate-600 max-w-2xl mx-auto">
+            {getStepDescription()}
+          </p>
+        </div>
+
+        {renderStepContent()}
+
+        {/* Additional Preferences Input */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <div className="text-center mb-4">
+            <p className="text-sm text-slate-600">
+              Don't see what you're looking for? Add specific topics, companies, or technologies:
+            </p>
+          </div>
+          <div className="flex items-center justify-center space-x-3 max-w-2xl mx-auto">
+            <input
+              type="text"
+              placeholder="e.g., OpenAI, computer vision, robotics, AI ethics..."
+              value={customPreferences}
+              onChange={(e) => setCustomPreferences(e.target.value)}
+              className="seer-input flex-1"
+            />
+            <button 
+              className="seer-btn-ghost"
+              onClick={() => {
+                if (customPreferences.trim()) {
+                  console.log('Custom preferences:', customPreferences)
+                  setCustomPreferences('')
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between max-w-4xl mx-auto mt-12">
+          <button
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="seer-btn-ghost disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center space-x-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+          
+          <button
+            onClick={handleNext}
+            disabled={
+              (currentStep === 1 && !formData.role) ||
+              (currentStep === 2 && formData.industries.length === 0) ||
+              (currentStep === 3 && formData.contentTypes.length === 0)
+            }
+            className="seer-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {currentStep === totalSteps ? 'Complete Setup' : 'Continue'}
+          </button>
+        </div>
+      </main>
+    </div>
+  )
+}
