@@ -413,6 +413,7 @@ export default function DashboardPage() {
               {personalizedStories.map((story, index) => (
                 <article
                   key={story.id}
+                  onClick={() => window.open(story.url, '_blank')}
                   className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer w-[380px] flex-shrink-0 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                   style={{ animationDelay: `${0.3 + index * 0.1}s` }}
                 >
@@ -477,26 +478,27 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   
-                    {/* Footer */}
+                    {/* Footer with Summarize button */}
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                       <div className="flex items-center space-x-3 text-xs text-slate-500">
                         <span className="flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                       <span>{story.readTime}</span>
                         </span>
+                        <span>•</span>
                       <span>{story.publishedAt}</span>
                     </div>
                     
-                      <div className="flex items-center space-x-2">
-                        <button className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center space-x-1">
-                          <ExternalLink className="w-3 h-3" />
-                      <span>Read</span>
-                        </button>
-                        <button className="px-3 py-1.5 text-xs font-medium bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1">
-                          <Sparkles className="w-3 h-3" />
-                          <span>Summarize</span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          // Handle summarize action
+                        }}
+                        className="px-3.5 py-1.5 text-sm font-semibold bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/40"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Summarize</span>
                     </button>
-                      </div>
                     </div>
                   </div>
                 </article>
@@ -609,9 +611,10 @@ export default function DashboardPage() {
             {filteredAllStories.map((story, index) => (
                 <article
                   key={story.id}
-                className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
-                style={{ animationDelay: `${1 + index * 0.05}s` }}
-              >
+                  onClick={() => window.open(story.url, '_blank')}
+                  className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  style={{ animationDelay: `${1 + index * 0.05}s` }}
+                >
                 {/* Image */}
                 {story.image && (
                   <div className="relative h-40 w-full rounded-t-2xl overflow-hidden bg-slate-100">
@@ -671,7 +674,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   
-                  {/* Footer */}
+                  {/* Footer with Summarize button */}
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div className="flex items-center space-x-2 text-xs text-slate-500">
                       <span className="flex items-center space-x-1">
@@ -682,15 +685,16 @@ export default function DashboardPage() {
                       <span>{story.publishedAt}</span>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <button className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors">
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-                      <button className="px-3 py-1.5 text-xs font-medium bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1">
-                        <Sparkles className="w-3 h-3" />
-                        <span>Summarize</span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        // Handle summarize action
+                      }}
+                      className="px-3.5 py-1.5 text-sm font-semibold bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/40"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Summarize</span>
                     </button>
-                    </div>
                   </div>
                   </div>
                 </article>
