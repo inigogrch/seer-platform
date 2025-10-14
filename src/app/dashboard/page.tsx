@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { 
   Eye, 
   Grid3X3, 
@@ -20,7 +21,11 @@ import {
   Filter,
   BarChart3,
   Target,
-  Zap
+  Zap,
+  X,
+  BookmarkPlus,
+  Calendar,
+  Flame
 } from 'lucide-react'
 
 interface Story {
@@ -35,254 +40,182 @@ interface Story {
   relevanceScore: number
   trending: boolean
   url: string
+  image?: string
+  saved?: boolean
 }
 
 export default function DashboardPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedFilter, setSelectedFilter] = useState('all')
   const [isVisible, setIsVisible] = useState(false)
   const [showAllStories, setShowAllStories] = useState(false)
+  const [savedStories, setSavedStories] = useState<Set<string>>(new Set())
+  const [sourceFilter, setSourceFilter] = useState('')
+  const [contentTypeFilter, setContentTypeFilter] = useState('')
+  const [industryFilter, setIndustryFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
 
+  const toggleSave = (storyId: string) => {
+    setSavedStories(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(storyId)) {
+        newSet.delete(storyId)
+      } else {
+        newSet.add(storyId)
+      }
+      return newSet
+    })
+  }
+
   // Mock stories data
-  const stories: Story[] = [
+  const personalizedStories: Story[] = [
     {
       id: '1',
-      title: "OpenAI Releases GPT-5 with Revolutionary Multimodal Capabilities",
-      summary: "The latest iteration of GPT introduces unprecedented multimodal understanding, combining text, image, audio, and video processing in a single model. Early benchmarks show 40% improvement in reasoning tasks.",
+      title: "OpenAI Launches GPT-4 Turbo with Enhanced Reasoning Capabilities",
+      summary: "The latest iteration promises 40% faster processing and improved logical reasoning for complex product decisions.",
       source: "TechCrunch",
       publishedAt: "2 hours ago",
       readTime: "4 min read",
-      category: "AI Models",
-      tags: ["OpenAI", "GPT-5", "Multimodal"],
+      category: "Product Strategy",
+      tags: ["GPT-4", "Product Strategy", "AI Tools"],
       relevanceScore: 95,
-      trending: true,
-      url: "#"
+      trending: false,
+      url: "#",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=400&fit=crop"
     },
     {
       id: '2',
-      title: "Meta's New AI Chip Architecture Promises 10x Performance Gains",
-      summary: "Meta unveils its custom silicon designed specifically for AI workloads, featuring novel memory architecture and specialized tensor processing units. The chip could revolutionize edge AI deployment.",
-      source: "The Verge",
+      title: "Google's Gemini AI Revolutionizes Code Review Process",
+      summary: "New AI-powered code analysis reduces review time by 60% while improving bug detection rates.",
+      source: "Wired",
       publishedAt: "4 hours ago",
       readTime: "6 min read",
-      category: "Hardware",
-      tags: ["Meta", "AI Chips", "Hardware"],
+      category: "Code Review",
+      tags: ["Google", "Code Review", "Development"],
       relevanceScore: 88,
-      trending: true,
-      url: "#"
+      trending: false,
+      url: "#",
+      image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop"
     },
     {
       id: '3',
-      title: "Anthropic's Constitutional AI Shows Promise in Reducing Harmful Outputs",
-      summary: "New research demonstrates how constitutional AI training can significantly reduce harmful, biased, or misleading outputs while maintaining model performance across diverse tasks.",
+      title: "Microsoft Copilot Integration Transforms Product Analytics",
+      summary: "AI-powered insights generation helps product managers identify user behavior patterns 3x faster.",
       source: "MIT Technology Review",
-      publishedAt: "8 hours ago",
-      readTime: "8 min read",
-      category: "AI Safety",
-      tags: ["Anthropic", "AI Safety", "Constitutional AI"],
-      relevanceScore: 82,
+      publishedAt: "6 hours ago",
+      readTime: "5 min read",
+      category: "Analytics",
+      tags: ["Microsoft", "Analytics", "User Insights"],
+      relevanceScore: 92,
       trending: false,
-      url: "#"
+      url: "#",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop"
     },
     {
       id: '4',
-      title: "Google DeepMind Achieves Breakthrough in Protein Folding Prediction",
-      summary: "AlphaFold 3 demonstrates unprecedented accuracy in predicting protein-protein interactions, opening new possibilities for drug discovery and understanding biological processes.",
-      source: "Nature",
-      publishedAt: "12 hours ago",
-      readTime: "10 min read",
-      category: "Research",
-      tags: ["Google", "DeepMind", "AlphaFold"],
-      relevanceScore: 79,
+      title: "Anthropic's Claude 3 Introduces Advanced Product Strategy Analysis",
+      summary: "New AI assistant specializes in competitive analysis, market research, and strategic roadmap development.",
+      source: "VentureBeat",
+      publishedAt: "8 hours ago",
+      readTime: "7 min read",
+      category: "Strategy",
+      tags: ["Anthropic", "Strategy", "Market Research"],
+      relevanceScore: 85,
       trending: false,
-      url: "#"
+      url: "#",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop"
     },
     {
       id: '5',
-      title: "Microsoft Copilot Integration Reaches 1 Billion Users Worldwide",
-      summary: "Microsoft announces that Copilot has been integrated across its entire ecosystem, with over 1 billion users now having access to AI-powered assistance in their daily workflows.",
-      source: "Microsoft Blog",
-      publishedAt: "1 day ago",
-      readTime: "5 min read",
-      category: "Business",
-      tags: ["Microsoft", "Copilot", "Productivity"],
-      relevanceScore: 75,
+      title: "Meta's AI Tools Enable Real-Time User Sentiment Analysis",
+      summary: "Advanced natural language processing helps product teams understand user feedback across multiple channels.",
+      source: "The Verge",
+      publishedAt: "12 hours ago",
+      readTime: "4 min read",
+      category: "Sentiment",
+      tags: ["Meta", "Sentiment", "User Feedback"],
+      relevanceScore: 89,
       trending: false,
-      url: "#"
-    },
-    {
-      id: '6',
-      title: "How Startups Are Using AI to Disrupt Traditional Industries",
-      summary: "A deep dive into innovative AI applications across healthcare, finance, education, and manufacturing sectors by emerging startups that are reshaping entire industries.",
-      source: "VentureBeat",
-      publishedAt: "2 days ago",
-      readTime: "15 min read",
-      category: "Business",
-      tags: ["Startups", "AI Applications", "Industry Disruption"],
-      relevanceScore: 71,
-      trending: false,
-      url: "#"
+      url: "#",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop"
     }
   ]
 
   const allStories: Story[] = [
-    ...stories, // Include the existing stories
+    ...personalizedStories,
+    {
+      id: '6',
+      title: "Startup Launches AI-Powered A/B Testing Platform",
+      summary: "Automated experiment design and analysis reduces testing cycles from weeks to days while improving statistical significance.",
+      source: "AI News",
+      publishedAt: "14 hours ago",
+      readTime: "5 min read",
+      category: "Testing",
+      tags: ["Startup", "A/B Testing", "Automation"],
+      relevanceScore: 82,
+      trending: true,
+      url: "#",
+      image: "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&h=400&fit=crop"
+    },
     {
       id: '7',
-      title: "Nvidia Unveils Next-Generation H200 AI Chips with 141GB Memory",
-      summary: "The new H200 Tensor Core GPUs feature significantly increased memory capacity and bandwidth, designed specifically for large language model training and inference.",
+      title: "Nvidia Unveils Next-Generation AI Chips for Product Teams",
+      summary: "New H200 GPUs with 141GB memory designed for real-time analytics and large-scale data processing.",
       source: "TechCrunch",
-      readTime: "5 min read",
-      publishedAt: "3 hours ago",
+      publishedAt: "16 hours ago",
+      readTime: "6 min read",
       category: "Hardware",
-      tags: ["Nvidia", "AI Chips", "Hardware"],
-      relevanceScore: 94,
-      trending: true,
-      url: "#"
+      tags: ["Nvidia", "Hardware", "Performance"],
+      relevanceScore: 78,
+      trending: false,
+      url: "#",
+      image: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=800&h=400&fit=crop"
     },
     {
       id: '8',
-      title: "Stanford Researchers Develop AI Model for Real-Time Protein Design",
-      summary: "New breakthrough allows for on-demand protein creation with specific functions, potentially revolutionizing drug discovery and biotechnology applications.",
-      source: "Nature",
-      readTime: "8 min read",
-      publishedAt: "5 hours ago",
-      category: "Research",
-      tags: ["Stanford", "Protein Design", "Biotechnology"],
-      relevanceScore: 89,
-      trending: false,
-      url: "#"
+      title: "How AI is Transforming Customer Journey Mapping",
+      summary: "Deep dive into how product teams use AI to understand and optimize every touchpoint in the customer experience.",
+      source: "Product School",
+      publishedAt: "18 hours ago",
+      readTime: "10 min read",
+      category: "Customer Journey",
+      tags: ["Customer Journey", "UX", "Optimization"],
+      relevanceScore: 91,
+      trending: true,
+      url: "#",
+      image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=400&fit=crop"
     },
     {
       id: '9',
-      title: "Amazon Bedrock Introduces Custom Model Training Capabilities",
-      summary: "AWS expands its AI service offerings with tools that allow enterprises to train custom foundation models using their proprietary data.",
+      title: "Amazon Bedrock Introduces Custom Model Training for Enterprises",
+      summary: "AWS expands AI service offerings with tools for training custom foundation models using proprietary data.",
       source: "AWS Blog",
-      readTime: "6 min read",
-      publishedAt: "7 hours ago",
-      category: "Business",
-      tags: ["Amazon", "AWS", "Custom Models"],
-      relevanceScore: 87,
-      trending: false,
-      url: "#"
-    },
-    {
-      id: '10',
-      title: "EU AI Act Implementation Guidelines Released for Enterprises",
-      summary: "Comprehensive framework provides clear guidance for companies to ensure compliance with the European Union's landmark AI regulation.",
-      source: "TechCrunch",
-      readTime: "7 min read",
-      publishedAt: "9 hours ago",
-      category: "Regulation",
-      tags: ["EU", "AI Act", "Compliance"],
-      relevanceScore: 82,
-      trending: false,
-      url: "#"
-    },
-    {
-      id: '11',
-      title: "Hugging Face Launches Open-Source Alternative to GPT-4",
-      summary: "The new model, trained on diverse multilingual data, aims to democratize access to advanced language AI capabilities for developers worldwide.",
-      source: "The Verge",
-      readTime: "4 min read",
-      publishedAt: "12 hours ago",
-      category: "AI Models",
-      tags: ["Hugging Face", "Open Source", "Language Models"],
-      relevanceScore: 91,
-      trending: true,
-      url: "#"
-    },
-    {
-      id: '12',
-      title: "Microsoft Copilot Studio Enables Custom AI Assistant Creation",
-      summary: "New low-code platform allows businesses to build specialized AI assistants tailored to their specific workflows and industry requirements.",
-      source: "Microsoft Blog",
-      readTime: "5 min read",
-      publishedAt: "14 hours ago",
-      category: "Tools",
-      tags: ["Microsoft", "Copilot", "Custom AI"],
-      relevanceScore: 85,
-      trending: false,
-      url: "#"
-    },
-    {
-      id: '13',
-      title: "DeepMind's Gemini Ultra Achieves Human-Level Performance on MMLU",
-      summary: "Latest evaluation results show the model matching human expert performance across 57 academic subjects, marking a significant milestone in AI development.",
-      source: "MIT Technology Review",
-      readTime: "6 min read",
-      publishedAt: "16 hours ago",
-      category: "AI Models",
-      tags: ["DeepMind", "Gemini", "Benchmarks"],
-      relevanceScore: 93,
-      trending: true,
-      url: "#"
-    },
-    {
-      id: '14',
-      title: "Anthropic Introduces Constitutional AI Training for Enterprise",
-      summary: "New service helps companies train AI models with built-in safety constraints and ethical guidelines, reducing harmful outputs in business applications.",
-      source: "VentureBeat",
-      readTime: "7 min read",
-      publishedAt: "18 hours ago",
-      category: "AI Safety",
-      tags: ["Anthropic", "Constitutional AI", "Enterprise"],
-      relevanceScore: 88,
-      trending: false,
-      url: "#"
-    },
-    {
-      id: '15',
-      title: "OpenAI Announces GPT Store Revenue Sharing Program",
-      summary: "Developers can now monetize their custom GPT applications through the official store, with revenue sharing based on user engagement metrics.",
-      source: "TechCrunch",
-      readTime: "4 min read",
       publishedAt: "20 hours ago",
-      category: "Business",
-      tags: ["OpenAI", "GPT Store", "Monetization"],
-      relevanceScore: 86,
+      readTime: "7 min read",
+      category: "Enterprise AI",
+      tags: ["Amazon", "AWS", "Enterprise"],
+      relevanceScore: 84,
       trending: false,
-      url: "#"
+      url: "#",
+      image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=400&fit=crop"
     }
   ]
 
-  const filters = [
-    { id: 'all', label: 'All Stories', count: stories.length },
-    { id: 'trending', label: 'Trending', count: stories.filter(s => s.trending).length },
-    { id: 'ai-models', label: 'AI Models', count: stories.filter(s => s.category === 'AI Models').length },
-    { id: 'research', label: 'Research', count: stories.filter(s => s.category === 'Research').length },
-    { id: 'business', label: 'Business', count: stories.filter(s => s.category === 'Business').length }
-  ]
-
-  const filteredStories = stories.filter(story => {
-    const matchesSearch = story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredAllStories = allStories.filter(story => {
+    const matchesSearch = !searchQuery || 
+      story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          story.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          story.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     
-    const matchesFilter = selectedFilter === 'all' || 
-                         (selectedFilter === 'trending' && story.trending) ||
-                         (selectedFilter === 'ai-models' && story.category === 'AI Models') ||
-                         (selectedFilter === 'research' && story.category === 'Research') ||
-                         (selectedFilter === 'business' && story.category === 'Business')
+    const matchesSource = !sourceFilter || story.source === sourceFilter
+    const matchesCategory = !categoryFilter || story.category === categoryFilter
     
-    return matchesSearch && matchesFilter
+    return matchesSearch && matchesSource && matchesCategory
   })
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'AI Models': return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'Hardware': return 'bg-green-100 text-green-800 border-green-200'
-      case 'AI Safety': return 'bg-red-100 text-red-800 border-red-200'
-      case 'Research': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'Business': return 'bg-orange-100 text-orange-800 border-orange-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
@@ -291,7 +224,7 @@ export default function DashboardPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
@@ -329,130 +262,210 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="w-full px-6 py-8">
-        {/* Header Section */}
+        {/* Header with Quick Actions */}
         <div className={`mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg">
-              <BarChart3 className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-seer-primary to-seer-accent rounded-2xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
+                <Sparkles className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Daily Brief</h1>
+                <p className="text-slate-600 mt-1">Curated for Product Managers • Tuesday, October 14</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-heading-1 text-slate-900">Your Personalized AI News Feed</h1>
-              <p className="text-body text-slate-600">{filteredStories.length} stories curated for Product Managers in Technology & Software</p>
+            <div className="flex items-center space-x-3">
+              <div className="px-4 py-2 bg-seer-primary-light rounded-lg border border-seer-primary/20">
+                <div className="text-sm text-slate-600">Today</div>
+                <div className="text-lg font-bold text-slate-900">{personalizedStories.length} stories</div>
+              </div>
+              <div className="px-4 py-2 bg-seer-primary-light rounded-lg border border-seer-primary/20">
+                <div className="text-sm text-slate-600">Avg Match</div>
+                <div className="text-lg font-bold text-seer-primary">89%</div>
+              </div>
+            </div>
+          </div>
+              </div>
+
+        {/* Dashboard Insights */}
+        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+          {/* Top Categories */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700">Top Categories Today</h3>
+              <Target className="w-5 h-5 text-seer-primary" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Product Strategy</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700">85%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Analytics</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '72%' }}></div>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700">72%</span>
+            </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Code Review</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '68%' }}></div>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700">68%</span>
+            </div>
+              </div>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="seer-card p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Target className="w-5 h-5 text-seer-teal" />
-              </div>
-              <div className="text-2xl font-bold text-slate-900">95%</div>
-              <div className="text-sm text-slate-600">Relevance</div>
+          {/* Reading Progress */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700">This Week's Activity</h3>
+              <BarChart3 className="w-5 h-5 text-seer-primary" />
             </div>
-            <div className="seer-card p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="w-5 h-5 text-seer-teal" />
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-600">Stories Read</span>
+                  <span className="text-sm font-bold text-slate-900">24/32</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '75%' }}></div>
+                </div>
               </div>
-              <div className="text-2xl font-bold text-slate-900">{stories.filter(s => s.trending).length}</div>
-              <div className="text-sm text-slate-600">Trending</div>
-            </div>
-            <div className="seer-card p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Clock className="w-5 h-5 text-seer-teal" />
-              </div>
-              <div className="text-2xl font-bold text-slate-900">2h</div>
-              <div className="text-sm text-slate-600">Ago</div>
-            </div>
-            <div className="seer-card p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Zap className="w-5 h-5 text-seer-teal" />
-              </div>
-              <div className="text-2xl font-bold text-slate-900">6</div>
-              <div className="text-sm text-slate-600">New Today</div>
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-slate-900">18</div>
+                  <div className="text-xs text-slate-600">Saved</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-slate-900">12</div>
+                  <div className="text-xs text-slate-600">Summarized</div>
         </div>
-
-        {/* Search and Filters */}
-        <div className={`seer-card p-6 mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search stories, topics, or companies..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="seer-input pl-12"
-                />
+              </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3 overflow-x-auto">
-              {filters.map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => setSelectedFilter(filter.id)}
-                  className={`seer-badge whitespace-nowrap border ${
-                    selectedFilter === filter.id
-                      ? 'bg-seer-teal text-white border-seer-teal'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
+          {/* Trending Topics */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700">Trending Topics</h3>
+              <TrendingUp className="w-5 h-5 text-seer-primary" />
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
+                  <span className="text-sm text-slate-700">GPT-4 Turbo</span>
+                </div>
+                <span className="text-xs font-semibold text-seer-primary">↑ 45%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
+                  <span className="text-sm text-slate-700">Gemini AI</span>
+                </div>
+                <span className="text-xs font-semibold text-seer-primary">↑ 32%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
+                  <span className="text-sm text-slate-700">Claude 3</span>
+                </div>
+                <span className="text-xs font-semibold text-seer-primary">↑ 28%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
+                  <span className="text-sm text-slate-700">Product Analytics</span>
+                </div>
+                <span className="text-xs font-semibold text-seer-primary">↑ 21%</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Horizontal Story Cards */}
-        <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
+        {/* Today's Personalized Stories - Horizontal Scroll */}
+        <div className={`mb-10 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-heading-2 text-slate-900">Latest Stories</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Today's Personalized Stories</h2>
             <div className="flex items-center space-x-2">
-              <button className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
                 <ChevronLeft className="w-5 h-5 text-slate-600" />
               </button>
-              <button className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
                 <ChevronRight className="w-5 h-5 text-slate-600" />
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto pb-4">
+          <div className="overflow-x-auto pb-4 -mx-6 px-6">
             <div className="flex space-x-6" style={{ width: 'max-content' }}>
-              {filteredStories.map((story, index) => (
+              {personalizedStories.map((story, index) => (
                 <article
                   key={story.id}
-                  className={`story-card-horizontal ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
-                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
+                  className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer w-[380px] flex-shrink-0 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  style={{ animationDelay: `${0.3 + index * 0.1}s` }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <span className={`seer-badge border ${getCategoryColor(story.category)}`}>
-                        {story.category}
-                      </span>
-                      {story.trending && (
-                        <div className="flex items-center space-x-1 text-seer-teal">
+                  {/* Image */}
+                  {story.image && (
+                    <div className="relative h-48 w-full rounded-t-2xl overflow-hidden bg-slate-100">
+                      <img 
+                        src={story.image} 
+                        alt={story.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleSave(story.id)
+                        }}
+                        className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
+                          savedStories.has(story.id)
+                            ? 'bg-seer-primary text-white'
+                            : 'bg-white/90 text-slate-600 hover:bg-seer-primary hover:text-white'
+                        }`}
+                      >
+                        <Bookmark className={`w-4 h-4 ${savedStories.has(story.id) ? 'fill-current' : ''}`} />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="p-6">
+                    {/* Source and Match */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1 text-seer-primary">
                           <TrendingUp className="w-4 h-4" />
-                          <span className="text-sm font-medium">Trending</span>
+                          <span className="text-sm font-semibold">{story.source}</span>
                         </div>
+                        {story.trending && (
+                          <Flame className="w-4 h-4 text-orange-500" />
                       )}
                     </div>
-                    <div className="text-sm text-slate-500">{story.relevanceScore}% relevant</div>
+                      <span className="text-sm font-semibold text-seer-primary">{story.relevanceScore}% match</span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight line-clamp-2">
+                    {/* Title */}
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
                     {story.title}
                   </h3>
                   
-                  <p className="text-body text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                    {/* Summary */}
+                    <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
                     {story.summary}
                   </p>
 
+                    {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {story.tags.slice(0, 3).map((tag) => (
                       <span
@@ -464,17 +477,27 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   
+                    {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <div className="flex items-center space-x-4 text-sm text-slate-500">
-                      <span className="font-medium text-slate-700">{story.source}</span>
+                      <div className="flex items-center space-x-3 text-xs text-slate-500">
+                        <span className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
                       <span>{story.readTime}</span>
+                        </span>
                       <span>{story.publishedAt}</span>
                     </div>
                     
-                    <button className="seer-btn-ghost text-sm inline-flex items-center space-x-1">
+                      <div className="flex items-center space-x-2">
+                        <button className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center space-x-1">
+                          <ExternalLink className="w-3 h-3" />
                       <span>Read</span>
-                      <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <button className="px-3 py-1.5 text-xs font-medium bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span>Summarize</span>
                     </button>
+                      </div>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -482,129 +505,193 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Show All Stories */}
-        {!showAllStories ? (
-          <div className={`text-center mt-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '1s' }}>
+        {/* Show All Stories Button */}
+        {!showAllStories && (
+          <div className={`text-center mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
             <button 
               onClick={() => setShowAllStories(true)}
-              className="seer-btn-secondary inline-flex items-center space-x-2"
+              className="seer-btn-primary inline-flex items-center space-x-2"
             >
               <span>Show All Stories</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        ) : (
-          <div className={`mt-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '1s' }}>
-            {/* All Stories Header */}
+        )}
+
+        {/* All Stories Section */}
+        {showAllStories && (
+          <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-heading-2 text-slate-900">All AI Stories</h2>
+              <h2 className="text-2xl font-bold text-slate-900">All AI Stories</h2>
               <button 
                 onClick={() => setShowAllStories(false)}
-                className="text-slate-500 hover:text-slate-700 transition-colors"
+                className="text-seer-primary hover:text-seer-primary-hover font-medium inline-flex items-center space-x-1"
               >
-                Hide
+                <span>Hide</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Filter Bar */}
-            <div className="seer-card p-4 mb-6">
-              <div className="flex items-center space-x-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+              <div className="flex-1 max-w-2xl">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search stories, topics, or companies..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent transition-all duration-300 placeholder-slate-400"
+                  />
+                </div>
+            </div>
+
+              <div className="flex items-center space-x-3 overflow-x-auto">
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-slate-500" />
-                  <span className="text-sm font-medium text-slate-700">Filter by:</span>
+                  <span className="text-sm font-medium text-slate-700 whitespace-nowrap">Filter by:</span>
                 </div>
                 
-                <div className="flex items-center space-x-4 overflow-x-auto">
-                  <select className="seer-input py-2 px-3 text-sm min-w-[120px]">
-                    <option value="">Source</option>
-                    <option value="techcrunch">TechCrunch</option>
-                    <option value="verge">The Verge</option>
-                    <option value="mit">MIT Technology Review</option>
-                    <option value="nature">Nature</option>
-                    <option value="venturebeat">VentureBeat</option>
+                <select 
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All sources</option>
+                  <option value="TechCrunch">TechCrunch</option>
+                  <option value="Wired">Wired</option>
+                  <option value="MIT Technology Review">MIT Technology Review</option>
+                  <option value="VentureBeat">VentureBeat</option>
+                  <option value="The Verge">The Verge</option>
                   </select>
                   
-                  <select className="seer-input py-2 px-3 text-sm min-w-[140px]">
-                    <option value="">Content Type</option>
-                    <option value="breaking-news">Breaking News</option>
-                    <option value="research">Research Papers</option>
-                    <option value="analysis">Industry Analysis</option>
-                    <option value="tutorials">Technical Tutorials</option>
+                <select 
+                  value={contentTypeFilter}
+                  onChange={(e) => setContentTypeFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All Content Typess</option>
+                  <option value="news">Breaking News</option>
+                  <option value="research">Research</option>
+                  <option value="analysis">Analysis</option>
                   </select>
                   
-                  <select className="seer-input py-2 px-3 text-sm min-w-[120px]">
-                    <option value="">Industry</option>
+                <select 
+                  value={industryFilter}
+                  onChange={(e) => setIndustryFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All industries</option>
+                  <option value="tech">Technology</option>
                     <option value="healthcare">Healthcare</option>
                     <option value="finance">Finance</option>
-                    <option value="technology">Technology</option>
-                    <option value="manufacturing">Manufacturing</option>
                   </select>
                   
-                  <select className="seer-input py-2 px-3 text-sm min-w-[120px]">
-                    <option value="">Category</option>
-                    <option value="ai-models">AI Models</option>
-                    <option value="hardware">Hardware</option>
-                    <option value="ai-safety">AI Safety</option>
-                    <option value="research">Research</option>
-                    <option value="business">Business</option>
+                <select 
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All categories</option>
+                  <option value="Product Strategy">Product Strategy</option>
+                  <option value="Code Review">Code Review</option>
+                  <option value="Analytics">Analytics</option>
+                  <option value="Strategy">Strategy</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            {/* All Stories Grid */}
+            {/* Stories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allStories.map((story, index) => (
+            {filteredAllStories.map((story, index) => (
                 <article
                   key={story.id}
-                  className={`story-card-horizontal ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
-                  style={{ animationDelay: `${1.2 + index * 0.05}s` }}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <span className={`seer-badge border ${getCategoryColor(story.category)}`}>
-                        {story.category}
-                      </span>
+                className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: `${1 + index * 0.05}s` }}
+              >
+                {/* Image */}
+                {story.image && (
+                  <div className="relative h-40 w-full rounded-t-2xl overflow-hidden bg-slate-100">
+                    <img 
+                      src={story.image} 
+                      alt={story.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleSave(story.id)
+                      }}
+                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
+                        savedStories.has(story.id)
+                          ? 'bg-seer-primary text-white'
+                          : 'bg-white/90 text-slate-600 hover:bg-seer-primary hover:text-white'
+                      }`}
+                    >
+                      <Bookmark className={`w-4 h-4 ${savedStories.has(story.id) ? 'fill-current' : ''}`} />
+                    </button>
                       {story.trending && (
-                        <div className="flex items-center space-x-1 text-seer-teal">
-                          <TrendingUp className="w-4 h-4" />
-                          <span className="text-sm font-medium">Trending</span>
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full inline-flex items-center space-x-1">
+                        <Flame className="w-3 h-3" />
+                        <span>Trending</span>
                         </div>
                       )}
                     </div>
-                    <div className="text-sm text-slate-500">{story.relevanceScore}% relevant</div>
+                )}
+
+                <div className="p-5">
+                  {/* Source and Match */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-seer-primary">{story.source}</span>
+                    <span className="text-sm font-semibold text-seer-primary">{story.relevanceScore}% match</span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight line-clamp-2">
+                  {/* Title */}
+                  <h3 className="text-base font-bold text-slate-900 mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
                     {story.title}
                   </h3>
                   
-                  <p className="text-body text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+                  {/* Summary */}
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
                     {story.summary}
                   </p>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
                     {story.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md font-medium"
+                        className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded font-medium"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
                   
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <div className="flex items-center space-x-4 text-sm text-slate-500">
-                      <span className="font-medium text-slate-700">{story.source}</span>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex items-center space-x-2 text-xs text-slate-500">
+                      <span className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3" />
                       <span>{story.readTime}</span>
+                      </span>
+                      <span>•</span>
                       <span>{story.publishedAt}</span>
                     </div>
                     
-                    <button className="seer-btn-ghost text-sm inline-flex items-center space-x-1">
-                      <span>Read</span>
-                      <ArrowRight className="w-4 h-4" />
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors">
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                      <button className="px-3 py-1.5 text-xs font-medium bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Summarize</span>
                     </button>
+                    </div>
+                  </div>
                   </div>
                 </article>
               ))}

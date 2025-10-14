@@ -317,11 +317,12 @@ body {
   }
 
   .story-card-horizontal {
-    @apply bg-white rounded-xl border border-gray-100 p-6 min-w-[400px] max-w-[400px] transition-all duration-300 hover:shadow-lg hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer;
+    @apply bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer;
   }
 
   .story-card-horizontal:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(78, 205, 196, 0.4);
   }
 
   .text-display-1 {
