@@ -1,19 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Eye, Sparkles, Play, ArrowRight, Zap, Target, Clock, ChevronDown, Filter, Bot, FileText, CheckSquare, Check } from 'lucide-react'
 
 export default function LandingPage() {
-  const [isVisible, setIsVisible] = useState(false)
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
   const [showTooltip, setShowTooltip] = useState(false)
-
-  useEffect(() => {
-    setIsVisible(true)
-  }, [])
 
   const scrollToFeatures = () => {
     document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' })
@@ -96,13 +91,13 @@ export default function LandingPage() {
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-6 w-full">
-        <div className={`flex items-center space-x-3 ${isVisible ? 'animate-fade-in-left' : 'opacity-0'}`}>
+        <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
             <Eye className="w-6 h-6 text-white" />
           </div>
           <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
-        <div className={`relative ${isVisible ? 'animate-fade-in-right' : 'opacity-0'}`}>
+        <div className="relative">
           {/* <Link 
             href="/onboarding"
             className="seer-btn-primary inline-flex items-center space-x-2"
@@ -131,13 +126,13 @@ export default function LandingPage() {
       <main className="relative z-10 w-full px-6 min-h-[calc(100vh-100px)] flex flex-col">
         <div className="text-center flex-1 flex flex-col justify-center py-20">
           {/* Badge */}
-          <div className={`inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-seer-primary/20 mx-auto ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+          <div className="inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-seer-primary/20 mx-auto">
             <Sparkles className="w-4 h-4" />
             <span>Agent-Powered AI Radar</span>
           </div>
 
           {/* Main heading */}
-          <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
+          <div>
             <h1 className="text-6xl md:text-7xl font-semibold tracking-tight text-slate-900 mb-4 leading-none">
               Stay Ahead in AI
             </h1>
@@ -147,7 +142,7 @@ export default function LandingPage() {
           </div>
 
           {/* Description */}
-          <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+          <div>
             <p className="text-body-large text-slate-600 max-w-4xl mx-auto mb-12 leading-relaxed">
               Seer delivers personalized AI news, blogs, and insights tailored to your role and 
               projects. Get smart summaries, actionable takeaways, and never miss what 
@@ -156,7 +151,7 @@ export default function LandingPage() {
           </div>
 
           {/* CTA Buttons */}
-          {/* <div className={`flex items-center justify-center space-x-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
+          {/* <div className="flex items-center justify-center space-x-6">
             <Link 
               href="/onboarding"
               className="seer-btn-primary text-lg inline-flex items-center space-x-2"
@@ -171,7 +166,7 @@ export default function LandingPage() {
           </div> */}
 
           {/* Waitlist Form */}
-          <div className={`w-full max-w-[410px] mx-auto px-4 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
+          <div className="w-full max-w-[410px] mx-auto px-4">
             <form onSubmit={handleWaitlistSubmit} className="flex items-center gap-3">
               <input
                 type="email"
@@ -199,7 +194,7 @@ export default function LandingPage() {
         </div>
 
         {/* Scroll Down Indicator - Moved to bottom */}
-        <div className={`pb-10 flex flex-col items-center ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '1s' }}>
+        <div className="pb-10 flex flex-col items-center">
           <button 
             onClick={scrollToFeatures}
             className="group flex flex-col items-center space-y-2 text-slate-400 hover:text-seer-primary transition-colors duration-300 cursor-pointer"
