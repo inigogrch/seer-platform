@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Eye, Sparkles, Play, ArrowRight, Zap, Target, Clock, ChevronDown } from 'lucide-react'
+import { Eye, Sparkles, Play, ArrowRight, Zap, Target, Clock, ChevronDown, Filter, Bot, FileText, CheckSquare, Check } from 'lucide-react'
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
+  const [email, setEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState('')
+  const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
     setIsVisible(true)
@@ -15,26 +19,51 @@ export default function LandingPage() {
     document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, timestamp: new Date().toISOString() })
+      })
+      
+      if (response.ok) {
+        setSubmitMessage('Thanks for joining! We\'ll be in touch soon.')
+        setEmail('')
+      } else {
+        setSubmitMessage('Something went wrong. Please try again.')
+      }
+    } catch (error) {
+      setSubmitMessage('Something went wrong. Please try again.')
+    }
+    
+    setIsSubmitting(false)
+    setTimeout(() => setSubmitMessage(''), 5000)
+  }
+
   const features = [
     {
-      icon: <Sparkles className="w-6 h-6 text-white" />,
-      title: "AI-Powered Curation",
-      description: "Get personalized AI news based on your role, industry, and current projects"
+      icon: <Filter className="w-6 h-6 text-white" />,
+      title: "High-Signal Content",
+      description: "Curated content sources from the AI industry to help you separate signal from noise"
     },
     {
-      icon: <Zap className="w-6 h-6 text-white" />,
-      title: "Smart Summarization", 
-      description: "Instant AI summaries with key takeaways and actionable next steps"
+      icon: <Bot className="w-6 h-6 text-white" />,
+      title: "AI-Powered Personalization", 
+      description: "Specialized agents that deliver the most relevant updates based on your context"
     },
     {
-      icon: <Target className="w-6 h-6 text-white" />,
-      title: "Role-Based Filtering",
-      description: "Content tailored for Product Managers, Engineers, Data Scientists, and more"
+      icon: <FileText className="w-6 h-6 text-white" />,
+      title: "Smart Summarization",
+      description: "One-click summaries and deeper analyses for a digestible reading experience"
     },
     {
-      icon: <Clock className="w-6 h-6 text-white" />,
-      title: "Real-Time Updates",
-      description: "Breaking news alerts and daily digests to keep you ahead of the curve"
+      icon: <CheckSquare className="w-6 h-6 text-white" />,
+      title: "Daily Actionability",
+      description: "Daily updates and action items to help you move from learning to execution"
     }
   ]
 
@@ -73,14 +102,28 @@ export default function LandingPage() {
           </div>
           <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
-        <div className={`${isVisible ? 'animate-fade-in-right' : 'opacity-0'}`}>
-          <Link 
+        <div className={`relative ${isVisible ? 'animate-fade-in-right' : 'opacity-0'}`}>
+          {/* <Link 
             href="/onboarding"
             className="seer-btn-primary inline-flex items-center space-x-2"
           >
             <span>Get Started</span>
             <ArrowRight className="w-4 h-4" />
-          </Link>
+          </Link> */}
+          <button
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="seer-btn-primary inline-flex items-center space-x-2 !px-6 !py-3"
+          >
+            <span>Get Started</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          {showTooltip && (
+            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-sm rounded-lg whitespace-nowrap z-50 shadow-lg">
+              Coming Soon
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -90,7 +133,7 @@ export default function LandingPage() {
           {/* Badge */}
           <div className={`inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-seer-primary/20 mx-auto ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
             <Sparkles className="w-4 h-4" />
-            <span>AI-Powered News Aggregation</span>
+            <span>Agent-Powered AI Radar</span>
           </div>
 
           {/* Main heading */}
@@ -106,14 +149,14 @@ export default function LandingPage() {
           {/* Description */}
           <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
             <p className="text-body-large text-slate-600 max-w-4xl mx-auto mb-12 leading-relaxed">
-              Seer delivers personalized AI news, research, and insights tailored to your role and 
+              Seer delivers personalized AI news, blogs, and insights tailored to your role and 
               projects. Get smart summaries, actionable takeaways, and never miss what 
               matters to your career.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className={`flex items-center justify-center space-x-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
+          {/* <div className={`flex items-center justify-center space-x-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
             <Link 
               href="/onboarding"
               className="seer-btn-primary text-lg inline-flex items-center space-x-2"
@@ -125,6 +168,33 @@ export default function LandingPage() {
               <Play className="w-5 h-5" />
               <span>View Demo</span>
             </button>
+          </div> */}
+
+          {/* Waitlist Form */}
+          <div className={`w-full max-w-[410px] mx-auto px-4 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
+            <form onSubmit={handleWaitlistSubmit} className="flex items-center gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email to join the waitlist"
+                required
+                className="flex-1 min-w-0 px-6 py-4 text-base rounded-xl border-2 border-slate-200 focus:border-seer-primary focus:outline-none focus:ring-2 focus:ring-seer-primary/20 transition-all bg-white/80 backdrop-blur-sm"
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-shrink-0 w-14 h-14 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-seer-primary/30"
+                title={isSubmitting ? 'Joining...' : 'Join Waitlist'}
+              >
+                <Check className="w-6 h-6 text-white" />
+              </button>
+            </form>
+            {submitMessage && (
+              <p className={`mt-4 text-center text-base font-medium ${submitMessage.includes('Thanks') ? 'text-green-600' : 'text-red-600'}`}>
+                {submitMessage}
+              </p>
+            )}
           </div>
         </div>
 
@@ -135,9 +205,7 @@ export default function LandingPage() {
             className="group flex flex-col items-center space-y-2 text-slate-400 hover:text-seer-primary transition-colors duration-300 cursor-pointer"
           >
             <span className="text-sm font-medium">Discover More</span>
-            <div className="w-6 h-10 border-2 border-current rounded-full flex items-start justify-center p-2 animate-bounce-slow">
-              <div className="w-1.5 h-1.5 bg-current rounded-full"></div>
-            </div>
+            <ChevronDown className="w-8 h-8 animate-bounce-slow" />
           </button>
         </div>
       </main>
@@ -147,10 +215,10 @@ export default function LandingPage() {
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="text-heading-1 text-slate-900 mb-4">
-            Everything You Need to Stay Informed
+            Seer The Future Of AI
           </h2>
-          <p className="text-body-large text-slate-600 max-w-2xl mx-auto">
-            Powerful features designed to help AI professionals stay ahead of the curve
+          <p className="text-body-large text-slate-600 max-w-3xl mx-auto">
+            Powerful features designed to help tech professionals stay ahead of the coming wave
           </p>
         </div>
 
@@ -179,8 +247,7 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="relative overflow-hidden bg-white/70 backdrop-blur-md rounded-2xl border-2 border-seer-primary/20 text-center p-16 max-w-4xl mx-auto shadow-xl hover:shadow-2xl transition-all duration-300">
-          {/* Decorative elements */}
+        {/* <div className="relative overflow-hidden bg-white/70 backdrop-blur-md rounded-2xl border-2 border-seer-primary/20 text-center p-16 max-w-4xl mx-auto shadow-xl hover:shadow-2xl transition-all duration-300">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-seer-primary/15 to-transparent rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-seer-accent/25 to-transparent rounded-full blur-2xl"></div>
           
@@ -199,7 +266,7 @@ export default function LandingPage() {
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
-        </div>
+        </div> */}
       </section>
 
       {/* Footer */}
