@@ -48,22 +48,22 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <Filter className="w-6 h-6 text-white" />,
+      icon: <Filter className="w-5 md:w-6 h-5 md:h-6 text-white" />,
       title: "High-Signal Content",
       description: "Curated content sources from the AI industry to help you separate signal from noise"
     },
     {
-      icon: <Bot className="w-6 h-6 text-white" />,
+      icon: <Bot className="w-5 md:w-6 h-5 md:h-6 text-white" />,
       title: "AI-Powered Personalization", 
       description: "Specialized agents that deliver the most relevant updates based on your context"
     },
     {
-      icon: <FileText className="w-6 h-6 text-white" />,
+      icon: <FileText className="w-5 md:w-6 h-5 md:h-6 text-white" />,
       title: "Smart Summarization",
       description: "One-click summaries and deeper analyses for a digestible reading experience"
     },
     {
-      icon: <CheckSquare className="w-6 h-6 text-white" />,
+      icon: <CheckSquare className="w-5 md:w-6 h-5 md:h-6 text-white" />,
       title: "Daily Actionability",
       description: "Daily updates and action items to help you move from learning to execution"
     }
@@ -97,12 +97,12 @@ export default function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-6 w-full">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
-            <Eye className="w-6 h-6 text-white" />
+      <header className="relative z-10 flex items-center justify-between px-4 md:px-6 py-4 md:py-6 w-full">
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
+            <Eye className="w-5 md:w-6 h-5 md:h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
+          <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
         <div className="relative">
         {/*
@@ -117,13 +117,13 @@ export default function LandingPage() {
           <button
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
-            className="seer-btn-primary inline-flex items-center space-x-2 !px-6 !py-3"
+            className="seer-btn-primary inline-flex items-center space-x-1.5 md:space-x-2 !px-4 md:!px-6 !py-2 md:!py-3 !text-sm md:!text-base"
           >
             <span>Get Started</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 md:w-4 h-3.5 md:h-4" />
           </button>
           {showTooltip && (
-            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-sm rounded-lg whitespace-nowrap z-50 shadow-lg">
+            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-900 text-white text-xs md:text-sm rounded-lg whitespace-nowrap z-50 shadow-lg">
               Coming Soon
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
             </div>
@@ -135,24 +135,24 @@ export default function LandingPage() {
       <main className="relative z-10 w-full px-6 min-h-[calc(100vh-100px)] flex flex-col">
         <div className="text-center flex-1 flex flex-col justify-center py-20">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-seer-primary/20 mx-auto">
-            <Sparkles className="w-4 h-4" />
+          <div className="inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold mb-6 md:mb-8 border border-seer-primary/20 mx-auto">
+            <Sparkles className="w-3 md:w-4 h-3 md:h-4" />
             <span>Agent-Powered AI Radar</span>
           </div>
 
           {/* Main heading */}
           <div>
-            <h1 className="text-6xl md:text-7xl font-semibold tracking-tight text-slate-900 mb-4 leading-none">
+            <h1 className="text-4xl md:text-7xl font-semibold tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
               Stay Ahead in AI
             </h1>
-            <h1 className="text-6xl md:text-7xl font-semibold tracking-tight seer-text-gradient mb-8 leading-none">
+            <h1 className="text-4xl md:text-7xl font-semibold tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
               Without the Overwhelm
             </h1>
           </div>
 
           {/* Description */}
           <div>
-            <p className="text-body-large text-slate-600 max-w-4xl mx-auto mb-12 leading-relaxed">
+            <p className="text-base md:text-xl text-slate-600 max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed">
               Seer delivers personalized AI news, blogs, and insights tailored to your role and 
               projects. Get smart summaries, actionable takeaways, and never miss what 
               matters to your career.
@@ -176,26 +176,26 @@ export default function LandingPage() {
 
           {/* Waitlist Form */}
           <div className="w-full max-w-[410px] mx-auto px-4">
-            <form onSubmit={handleWaitlistSubmit} className="flex items-center gap-3">
+            <form onSubmit={handleWaitlistSubmit} className="flex items-center gap-2 md:gap-3">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email to join the waitlist"
                 required
-                className="flex-1 min-w-0 px-6 py-4 text-base rounded-xl border-2 border-slate-200 focus:border-seer-primary focus:outline-none focus:ring-2 focus:ring-seer-primary/20 transition-all bg-white/80 backdrop-blur-sm"
+                className="flex-1 min-w-0 px-4 md:px-6 py-3 md:py-4 text-sm md:text-base rounded-xl border-2 border-slate-200 focus:border-seer-primary focus:outline-none focus:ring-2 focus:ring-seer-primary/20 transition-all bg-white/80 backdrop-blur-sm"
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-shrink-0 w-14 h-14 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-seer-primary/30"
+                className="flex-shrink-0 w-12 md:w-14 h-12 md:h-14 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-seer-primary/30"
                 title={isSubmitting ? 'Joining...' : 'Join Waitlist'}
               >
-                <Check className="w-6 h-6 text-white" />
+                <Check className="w-5 md:w-6 h-5 md:h-6 text-white" />
               </button>
             </form>
             {submitMessage && (
-              <p className={`mt-4 text-center text-base font-medium ${
+              <p className={`mt-3 md:mt-4 text-center text-sm md:text-base font-medium ${
                 submitMessage.includes('Thanks') 
                   ? 'text-green-600' 
                   : submitMessage.includes('already') 
@@ -214,8 +214,8 @@ export default function LandingPage() {
             onClick={scrollToFeatures}
             className="group flex flex-col items-center space-y-2 text-slate-400 hover:text-seer-primary transition-colors duration-300 cursor-pointer"
           >
-            <span className="text-sm font-medium">Discover More</span>
-            <ChevronDown className="w-8 h-8 animate-bounce-slow" />
+            <span className="text-xs md:text-sm font-medium">Discover More</span>
+            <ChevronDown className="w-6 md:w-8 h-6 md:h-8 animate-bounce-slow" />
           </button>
         </div>
       </main>
@@ -223,31 +223,31 @@ export default function LandingPage() {
       {/* Features Section - Second View */}
       <section id="features-section" className="relative z-10 w-full px-6 py-32 min-h-screen">
         {/* Section Header */}
-        <div className="text-center mb-20">
-          <h2 className="text-heading-1 text-slate-900 mb-4">
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
             Seer The Future Of AI
           </h2>
-          <p className="text-body-large text-slate-600 max-w-3xl mx-auto">
+          <p className="text-base md:text-xl text-slate-600 max-w-3xl mx-auto">
             Powerful features designed to help tech professionals stay ahead of the coming wave
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-24">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto mb-20 md:mb-24">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="seer-card p-10 group hover:bg-gradient-to-br hover:from-white hover:to-seer-primary-light/40"
+              className="seer-card p-6 md:p-10 group hover:bg-gradient-to-br hover:from-white hover:to-seer-primary-light/40"
             >
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-seer-primary to-seer-accent rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-seer-primary/20">
+              <div className="flex flex-col items-center text-center space-y-3 md:space-y-4">
+                <div className="flex-shrink-0 w-12 md:w-16 h-12 md:h-16 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-seer-primary/20">
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                  <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-body text-slate-600 leading-relaxed">
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -280,17 +280,17 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-200/50 py-8 backdrop-blur-sm">
-        <div className="w-full px-6 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg flex items-center justify-center shadow-md shadow-seer-primary/30">
-              <Eye className="w-5 h-5 text-white" />
+      <footer className="relative z-10 border-t border-slate-200/50 py-6 md:py-8 backdrop-blur-sm">
+        <div className="w-full px-6 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center space-x-2 md:space-x-3">
+            <div className="w-6 md:w-8 h-6 md:h-8 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg flex items-center justify-center shadow-md shadow-seer-primary/30">
+              <Eye className="w-4 md:w-5 h-4 md:h-5 text-white" />
             </div>
-            <span className="text-sm font-semibold text-slate-700">Seer</span>
-            <span className="text-sm text-slate-500">AI News for Tech Professionals</span>
+            <span className="text-xs md:text-sm font-semibold text-slate-700">Seer</span>
+            <span className="text-xs md:text-sm text-slate-500 hidden sm:inline">AI News for Tech Professionals</span>
           </div>
-          <div className="text-sm text-slate-400">
-            © 2025 Seer. All rights reserved. Built with Next.js and AI
+          <div className="text-xs md:text-sm text-slate-400 text-center md:text-left">
+            © 2025 Seer. All rights reserved.
           </div>
         </div>
       </footer>

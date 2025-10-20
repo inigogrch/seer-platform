@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Force Node.js runtime
-export const runtime = 'nodejs'
-
 // Add a GET handler for testing
 export async function GET() {
   return NextResponse.json({ 
