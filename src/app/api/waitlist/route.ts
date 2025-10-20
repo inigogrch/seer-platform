@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
-import { writeFile, readFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: Request) {
   try {
-    const { email, timestamp } = await request.json()
+    const { email } = await request.json()
     
+    // Basic email validation
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { error: 'Invalid email address' },
@@ -14,39 +13,39 @@ export async function POST(request: Request) {
       )
     }
 
-    // Define the path for the waitlist file in the project root
-    const dataDir = path.join(process.cwd(), 'data')
-    const filePath = path.join(dataDir, 'waitlist.json')
-    
-    // Create data directory if it doesn't exist
-    if (!existsSync(dataDir)) {
-      await mkdir(dataDir, { recursive: true })
-    }
-    
-    // Read existing data or initialize empty array
-    let waitlistData: Array<{ email: string; timestamp: string }> = []
-    
-    if (existsSync(filePath)) {
-      const fileContent = await readFile(filePath, 'utf-8')
-      waitlistData = JSON.parse(fileContent)
-    }
-    
-    // Check if email already exists
-    if (waitlistData.some(entry => entry.email === email)) {
+    const supabase = createAdminClient()
+
+    // Insert email into Supabase
+    // The unique constraint on LOWER(email) will prevent duplicates automatically
+    const { data, error } = await supabase
+      .from('waitlist_emails')
+      .insert({ email: email.trim() })
+      .select()
+      .single()
+
+    if (error) {
+      // Check if it's a duplicate email error
+      if (error.code === '23505') { // Postgres unique violation code
+        return NextResponse.json(
+          { message: 'Email already registered' },
+          { status: 200 }
+        )
+      }
+      
+      console.error('Supabase error:', error)
       return NextResponse.json(
-        { message: 'Email already registered' },
-        { status: 200 }
+        { error: 'Failed to add to waitlist' },
+        { status: 500 }
       )
     }
-    
-    // Add new email
-    waitlistData.push({ email, timestamp })
-    
-    // Write back to file
-    await writeFile(filePath, JSON.stringify(waitlistData, null, 2))
+
+    console.log('✅ Successfully added to waitlist:', email)
     
     return NextResponse.json(
-      { message: 'Successfully added to waitlist' },
+      { 
+        message: 'Successfully added to waitlist',
+        data 
+      },
       { status: 200 }
     )
   } catch (error) {
