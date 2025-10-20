@@ -25,9 +25,16 @@ export default function LandingPage() {
         body: JSON.stringify({ email, timestamp: new Date().toISOString() })
       })
       
+      const data = await response.json()
+      
       if (response.ok) {
-        setSubmitMessage('Thanks for joining! We\'ll be in touch soon.')
-        setEmail('')
+        // Check if it's a duplicate email
+        if (data.message === 'Email already registered') {
+          setSubmitMessage('You\'re already on the waitlist!')
+        } else {
+          setSubmitMessage('Thanks for joining! We\'ll be in touch soon.')
+          setEmail('')
+        }
       } else {
         setSubmitMessage('Something went wrong. Please try again.')
       }
@@ -188,7 +195,13 @@ export default function LandingPage() {
               </button>
             </form>
             {submitMessage && (
-              <p className={`mt-4 text-center text-base font-medium ${submitMessage.includes('Thanks') ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`mt-4 text-center text-base font-medium ${
+                submitMessage.includes('Thanks') 
+                  ? 'text-green-600' 
+                  : submitMessage.includes('already') 
+                    ? 'text-amber-600' 
+                    : 'text-red-600'
+              }`}>
                 {submitMessage}
               </p>
             )}
