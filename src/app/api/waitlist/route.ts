@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+// Force Node.js runtime
+export const runtime = 'nodejs'
+
+// Add a GET handler for testing
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Waitlist API is working. Use POST to submit an email.',
+    timestamp: new Date().toISOString()
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json()
