@@ -76,24 +76,24 @@ export default function LandingPage() {
       
       {/* Enhanced Floating background elements with gradients */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Large gradient orbs - Stronger and positioned for full page coverage */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-seer-primary/30 to-seer-accent/25 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute top-1/3 -left-40 w-80 h-80 bg-gradient-to-tr from-seer-accent/35 to-seer-primary/30 rounded-full blur-3xl animate-float-medium"></div>
-        <div className="absolute top-[60%] right-1/3 w-72 h-72 bg-gradient-to-bl from-seer-primary/28 to-seer-accent/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute bottom-[10%] -left-20 w-96 h-96 bg-gradient-to-tr from-seer-primary/25 to-seer-accent/30 rounded-full blur-3xl animate-float-medium" style={{ animationDelay: '5s' }}></div>
-        <div className="absolute bottom-[30%] right-[10%] w-80 h-80 bg-gradient-to-bl from-seer-accent/30 to-seer-primary/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '7s' }}></div>
+        {/* Large gradient orbs - More subtle on mobile, stronger on desktop */}
+        <div className="absolute -top-40 -right-40 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-br from-seer-primary/10 to-seer-accent/8 md:from-seer-primary/30 md:to-seer-accent/25 rounded-full blur-2xl md:blur-3xl animate-float-slow"></div>
+        <div className="absolute top-1/3 -left-40 w-56 md:w-80 h-56 md:h-80 bg-gradient-to-tr from-seer-accent/12 to-seer-primary/10 md:from-seer-accent/35 md:to-seer-primary/30 rounded-full blur-2xl md:blur-3xl animate-float-medium"></div>
+        <div className="absolute top-[60%] right-1/3 w-48 md:w-72 h-48 md:h-72 bg-gradient-to-bl from-seer-primary/10 to-seer-accent/8 md:from-seer-primary/28 md:to-seer-accent/25 rounded-full blur-2xl md:blur-3xl animate-float-slow" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute bottom-[10%] -left-20 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-tr from-seer-primary/8 to-seer-accent/10 md:from-seer-primary/25 md:to-seer-accent/30 rounded-full blur-2xl md:blur-3xl animate-float-medium" style={{ animationDelay: '5s' }}></div>
+        <div className="absolute bottom-[30%] right-[10%] w-56 md:w-80 h-56 md:h-80 bg-gradient-to-bl from-seer-accent/10 to-seer-primary/8 md:from-seer-accent/30 md:to-seer-primary/25 rounded-full blur-2xl md:blur-3xl animate-float-slow" style={{ animationDelay: '7s' }}></div>
         
-        {/* Animated dots with movement - distributed across full page */}
-        <div className="absolute top-20 left-1/4 w-3 h-3 bg-seer-primary rounded-full animate-float-dot-1" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-40 right-1/3 w-2 h-2 bg-seer-accent rounded-full animate-float-dot-2" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-60 left-1/3 w-4 h-4 bg-seer-primary rounded-full animate-float-dot-3" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[70%] right-1/4 w-3 h-3 bg-seer-accent rounded-full animate-float-dot-1" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute top-[50%] left-1/5 w-2 h-2 bg-seer-primary rounded-full animate-float-dot-2" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute top-1/2 right-1/5 w-5 h-5 bg-seer-accent rounded-full animate-float-dot-3" style={{ animationDelay: '2.5s' }}></div>
-        <div className="absolute bottom-40 left-2/3 w-3 h-3 bg-seer-primary rounded-full animate-float-dot-2" style={{ animationDelay: '1.2s' }}></div>
-        <div className="absolute top-1/4 right-2/3 w-4 h-4 bg-seer-accent rounded-full animate-float-dot-1" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-[85%] left-1/2 w-3 h-3 bg-seer-primary rounded-full animate-float-dot-3" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute bottom-[15%] right-1/2 w-2 h-2 bg-seer-accent rounded-full animate-float-dot-1" style={{ animationDelay: '2.8s' }}></div>
+        {/* Animated dots with movement - more subtle on mobile */}
+        <div className="absolute top-20 left-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-40 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-40 right-1/3 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-40 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-60 left-1/3 w-3 md:w-4 h-3 md:h-4 bg-seer-primary opacity-40 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[70%] right-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-accent opacity-40 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-[50%] left-1/5 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-primary opacity-40 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute top-1/2 right-1/5 w-3 md:w-5 h-3 md:h-5 bg-seer-accent opacity-40 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2.5s' }}></div>
+        <div className="absolute bottom-40 left-2/3 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-40 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1.2s' }}></div>
+        <div className="absolute top-1/4 right-2/3 w-3 md:w-4 h-3 md:h-4 bg-seer-accent opacity-40 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-[85%] left-1/2 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-40 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute bottom-[15%] right-1/2 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-40 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '2.8s' }}></div>
       </div>
 
       {/* Header */}
