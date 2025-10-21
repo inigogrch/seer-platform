@@ -227,7 +227,7 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
             Seer The Future Of AI
           </h2>
-          <p className="text-base md:text-xl text-slate-600 max-w-3xl mx-auto">
+          <p className="text-sm md:text-xl text-slate-600 max-w-5xl mx-auto px-4">
             Powerful features designed to help tech professionals stay ahead of the coming wave
           </p>
         </div>
