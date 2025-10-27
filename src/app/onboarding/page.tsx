@@ -27,6 +27,8 @@ interface Message {
   content: string | React.ReactNode
   timestamp: number
   step: StepType
+  options?: string[] // Store options for each question
+  selectedAnswer?: string | string[] // Store what was selected
 }
 
 // Static options for role and industry
@@ -128,28 +130,46 @@ export default function OnboardingPage() {
       return
     }
 
-    // Add question message
+    // Load options based on step first
+    let options: string[] = []
+    if (step === 'role') {
+      options = ROLE_OPTIONS
+      setCurrentOptions(ROLE_OPTIONS)
+    } else if (step === 'industry') {
+      options = INDUSTRY_OPTIONS
+      setCurrentOptions(INDUSTRY_OPTIONS)
+    } else if (['team', 'tasks', 'tools', 'problems'].includes(step)) {
+      await generateOptions(step, currentState)
+      // Options will be set in generateOptions, we'll add them to message later
+      return // Will add question after options are generated
+    }
+
+    // Add question message with options
     const question = getStepQuestion(step)
     const questionMsg: Message = {
       type: 'question',
       content: question,
       timestamp: Date.now(),
       step,
+      options,
     }
     setMessages((prev) => [...prev, questionMsg])
-
-    // Load options based on step
-    if (step === 'role') {
-      setCurrentOptions(ROLE_OPTIONS)
-    } else if (step === 'industry') {
-      setCurrentOptions(INDUSTRY_OPTIONS)
-    } else if (['team', 'tasks', 'tools', 'problems'].includes(step)) {
-      await generateOptions(step, currentState)
-    }
   }
 
   const generateOptions = async (step: StepType, currentState: OnboardingState) => {
     setIsGenerating(true)
+    
+    // Add question first
+    const question = getStepQuestion(step)
+    const questionMsg: Message = {
+      type: 'question',
+      content: question,
+      timestamp: Date.now(),
+      step,
+      options: [], // Will be filled after generation
+    }
+    setMessages((prev) => [...prev, questionMsg])
+    
     try {
       const response = await fetch('/api/onboarding/generate-options', {
         method: 'POST',
@@ -161,7 +181,18 @@ export default function OnboardingPage() {
       })
 
       const data = await response.json()
-      setCurrentOptions(data.options || [])
+      const generatedOptions = data.options || []
+      setCurrentOptions(generatedOptions)
+      
+      // Update the question message with options
+      setMessages((prev) => {
+        const updated = [...prev]
+        const lastMsg = updated[updated.length - 1]
+        if (lastMsg && lastMsg.type === 'question') {
+          lastMsg.options = generatedOptions
+        }
+        return updated
+      })
     } catch (error) {
       console.error('Error generating options:', error)
       setCurrentOptions([])
@@ -247,6 +278,7 @@ export default function OnboardingPage() {
       content: Array.isArray(answer) ? answer.join(', ') : answer,
       timestamp: Date.now(),
       step,
+      selectedAnswer: answer,
     }
     setMessages((prev) => [...prev, answerMsg])
 
@@ -378,72 +410,126 @@ export default function OnboardingPage() {
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-seer-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-seer-teal" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Minimal Header */}
-      <header className="px-6 py-4 border-b border-white/10 seer-glass">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 seer-glass rounded-lg flex items-center justify-center">
-              <Eye className="w-5 h-5 text-white" />
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
+      {/* Enhanced Gradient Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#4ECDC4]/10 rounded-full blur-[140px] animate-float-slow" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#4ECDC4]/8 rounded-full blur-[140px] animate-float-medium" />
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#4ECDC4]/5 rounded-full blur-[100px] animate-pulse-opacity" />
             </div>
-            <span className="text-xl font-bold font-serif text-white">Seer</span>
-          </div>
-          <div className="flex items-center space-x-2 text-xs text-white/60">
-            <Sparkles className="w-3 h-3" />
-            <span>Onboarding</span>
-          </div>
-        </div>
-      </header>
 
-      {/* Chat Container */}
-      <main className="flex-1 overflow-y-auto px-6 py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {messages.map((msg, i) => (
+      {/* Scrollable Content */}
+      <div className="h-full overflow-y-auto scroll-smooth">
+        <div className="relative w-full max-w-3xl mx-auto">
+          {/* Previous Q&A Pairs */}
+          {messages.map((msg, i) => {
+            // Group questions with their answers - only show if answered
+            if (msg.type === 'question') {
+              const nextMsg = messages[i + 1]
+              const isAnswer = nextMsg && nextMsg.type === 'answer'
+              
+              // Skip questions that haven't been answered yet
+              if (!isAnswer) return null
+              
+              const questionOptions = msg.options || []
+              const selectedAnswer = nextMsg.selectedAnswer
+              
+              return (
             <div
               key={i}
-              className={`animate-fadeInUp ${
-                msg.type === 'answer' ? 'flex justify-end' : ''
-              }`}
-            >
-              {msg.type === 'question' ? (
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-serif font-semibold text-white">{msg.content}</h2>
-                  <p className="text-sm text-white/60">{getStepHint(msg.step)}</p>
+                  className="min-h-screen flex flex-col items-center justify-center px-6 py-20"
+                >
+                  <div className="w-full max-w-2xl space-y-12 text-center">
+                    {/* Question */}
+                    <div className="space-y-4">
+                      <h2 className="text-4xl md:text-5xl font-extralight text-slate-900 tracking-tight leading-tight">
+                        {msg.content}
+                      </h2>
+                      <p className="text-base text-slate-500/80 font-light">{getStepHint(msg.step)}</p>
+                    </div>
+                    
+                    {/* Options (disabled/readonly state) */}
+                    {questionOptions.length > 0 && (
+                      <div className="flex flex-wrap gap-3 justify-center">
+                        {questionOptions.map((option) => {
+                          const isSelected = Array.isArray(selectedAnswer) 
+                            ? selectedAnswer.includes(option)
+                            : selectedAnswer === option
+                          
+                          return (
+                            <button
+                              key={option}
+                              disabled
+                              className={`px-6 py-3 rounded-full text-sm font-light backdrop-blur-xl shadow-lg ${
+                                isSelected
+                                  ? 'bg-[#4ECDC4] text-white border-2 border-white/40 shadow-2xl shadow-[#4ECDC4]/30'
+                                  : 'bg-white/40 border-2 border-white/60 text-slate-700 opacity-60'
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* Answer shown as input value */}
+                    {isAnswer && (
+                      <div className="space-y-6">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={Array.isArray(nextMsg.content) ? nextMsg.content.join(', ') : nextMsg.content as string}
+                            disabled
+                            className="w-full bg-transparent border-b-2 border-[#4ECDC4]/50 outline-none py-4 text-slate-900 text-center font-light text-xl"
+                          />
                 </div>
-              ) : (
-                <div className="inline-block px-4 py-2 seer-glass rounded-2xl text-sm font-medium text-white">
-                  {msg.content}
                 </div>
               )}
             </div>
-          ))}
+                </div>
+              )
+            }
+            return null
+          })}
 
-          {/* Current Step Options */}
+          {/* Current Question */}
           {state.currentStep !== 'complete' && (
-            <div className="space-y-4 animate-fadeInUp">
+            <div className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
+              <div className="w-full max-w-2xl space-y-12 text-center">
+                {/* Question */}
+                <div className="space-y-4">
+                  <h2 className="text-4xl md:text-5xl font-extralight text-slate-900 tracking-tight leading-tight">
+                    {getStepQuestion(state.currentStep)}
+                  </h2>
+                  <p className="text-base text-slate-500/80 font-light">{getStepHint(state.currentStep)}</p>
+                </div>
+
+                {/* Current Step Options */}
+                <div className="space-y-8 animate-fadeInUp">
               {isGenerating ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-seer-primary" />
-                  <span className="ml-3 text-white/70">Generating personalized options...</span>
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#4ECDC4]" />
+                      <span className="ml-4 text-slate-600 font-light text-lg">Generating options...</span>
                 </div>
               ) : (
                 <>
                   {currentOptions.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <div className="flex flex-wrap gap-3 justify-center">
                       {currentOptions.map((option) => (
                         <button
                           key={option}
                           onClick={() => handleOptionSelect(option)}
-                          className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                              className={`px-6 py-3 rounded-full text-sm font-light transition-all backdrop-blur-xl shadow-lg ${
                             selectedOptions.includes(option)
-                              ? 'bg-white/20 text-white shadow-md border border-white/30'
-                              : 'seer-glass text-white/80 hover:bg-white/10'
+                                  ? 'bg-[#4ECDC4] text-white border-2 border-white/40 shadow-2xl shadow-[#4ECDC4]/30 scale-105'
+                                  : 'bg-white/40 border-2 border-white/60 text-slate-700 hover:bg-white/60 hover:border-[#4ECDC4]/40 hover:shadow-xl hover:scale-105'
                           }`}
                         >
                           {option}
@@ -454,17 +540,10 @@ export default function OnboardingPage() {
                 </>
               )}
             </div>
-          )}
 
-          <div ref={messagesEndRef} />
-        </div>
-      </main>
-
-      {/* Minimalist Input Bar */}
-      {state.currentStep !== 'complete' && (
-        <div className="border-t border-white/10 seer-glass">
-          <div className="max-w-3xl mx-auto px-6 py-4">
-            <div className="flex items-center space-x-3">
+                {/* Minimalist Line Input */}
+                <div className="space-y-6">
+                  <div className="relative">
               <input
                 type="text"
                 value={customInput}
@@ -477,16 +556,18 @@ export default function OnboardingPage() {
                     }
                   }
                 }}
-                placeholder={`Type your answer here...`}
-                className="flex-1 bg-white/5 border-b-2 border-white/20 focus:border-white/40 outline-none py-2 text-white placeholder:text-white/40 transition-colors"
+                      placeholder="Type your answer..."
+                      className="w-full bg-transparent border-b-2 border-slate-300/50 focus:border-[#4ECDC4] outline-none py-4 text-slate-900 placeholder:text-slate-400/60 transition-all text-center font-light text-xl"
               />
-              <div className="flex items-center space-x-2">
+                  </div>
+                  
+                  <div className="flex items-center justify-center space-x-6">
                 {canSkip(state.currentStep) && (
                   <button
                     onClick={handleSkip}
-                    className="text-sm text-white/60 hover:text-white transition-colors"
+                        className="text-sm text-slate-400/80 hover:text-slate-600 transition-all font-light hover:scale-105"
                   >
-                    Skip
+                        skip
                   </button>
                 )}
                 <button
@@ -496,24 +577,32 @@ export default function OnboardingPage() {
                     selectedOptions.length === 0 &&
                     !customInput.trim()
                   }
-                  className="p-2 rounded-full seer-glass text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="group relative disabled:opacity-20 disabled:cursor-not-allowed transition-all hover:scale-110"
                 >
+                      <div className="absolute inset-0 bg-[#4ECDC4]/40 blur-2xl group-hover:blur-3xl transition-all rounded-full animate-pulse-opacity" />
+                      <div className="relative w-14 h-14 rounded-full bg-[#4ECDC4] text-white flex items-center justify-center transition-all shadow-2xl shadow-[#4ECDC4]/40 border-2 border-white/30 group-hover:bg-[#45B7B8]">
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <ArrowRight className="w-5 h-5" />
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : (
+                          <ArrowRight className="w-6 h-6" />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                  
+                  {isRequired(state.currentStep) && (
+                    <p className="text-xs text-slate-400/70 text-center font-light tracking-wide">
+                      REQUIRED
+                    </p>
                   )}
-                </button>
+                </div>
               </div>
             </div>
-            <p className="text-xs text-white/50 mt-2">
-              {isRequired(state.currentStep)
-                ? 'This field is required'
-                : 'Press Enter to continue or click Skip'}
-            </p>
-          </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
-      )}
+      </div>
     </div>
   )
 }

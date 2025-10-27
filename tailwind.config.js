@@ -8,21 +8,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'seer-primary': '#60A5FA',
-        'seer-primary-hover': '#3B82F6',
-        'seer-primary-light': 'rgba(96, 165, 250, 0.15)',
-        'seer-primary-dark': '#2563EB',
-        'seer-accent': '#818CF8',
+        'seer-primary': '#4ECDC4',
+        'seer-primary-hover': '#45B7B8',
+        'seer-primary-light': '#E8FFFE',
+        'seer-primary-dark': '#3A9B96',
+        'seer-accent': '#26D0CE',
         // Legacy aliases for backward compatibility
-        'seer-teal': '#60A5FA',
-        'seer-teal-hover': '#3B82F6',
-        'seer-light-teal': 'rgba(96, 165, 250, 0.15)',
-        'seer-dark-teal': '#2563EB',
+        'seer-teal': '#4ECDC4',
+        'seer-teal-hover': '#45B7B8',
+        'seer-light-teal': '#E8FFFE',
+        'seer-dark-teal': '#3A9B96',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
-        display: ['Playfair Display', 'Georgia', 'serif'],
       },
     },
   },

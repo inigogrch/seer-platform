@@ -70,36 +70,39 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="relative min-h-screen">
-      {/* Floating background elements with gradients */}
+    <div className="relative">
+      {/* Full-page gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 -z-10"></div>
+      
+      {/* Enhanced Floating background elements with gradients */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Large gradient orbs */}
-        <div className="absolute -top-40 -right-40 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-br from-seer-primary/20 to-seer-accent/15 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute top-1/3 -left-40 w-72 md:w-80 h-72 md:h-80 bg-gradient-to-tr from-seer-accent/20 to-seer-primary/15 rounded-full blur-3xl animate-float-medium"></div>
-        <div className="absolute top-[60%] right-1/3 w-64 md:w-72 h-64 md:h-72 bg-gradient-to-bl from-seer-primary/15 to-seer-accent/20 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute bottom-[10%] -left-20 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-tr from-seer-primary/15 to-seer-accent/20 rounded-full blur-3xl animate-float-medium" style={{ animationDelay: '5s' }}></div>
-        <div className="absolute bottom-[30%] right-[10%] w-72 md:w-80 h-72 md:h-80 bg-gradient-to-bl from-seer-accent/20 to-seer-primary/15 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '7s' }}></div>
+        {/* Large gradient orbs - Visible on mobile but cleaner, stronger on desktop */}
+        <div className="absolute -top-40 -right-40 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-br from-seer-primary/20 to-seer-accent/18 md:from-seer-primary/30 md:to-seer-accent/25 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-1/3 -left-40 w-72 md:w-80 h-72 md:h-80 bg-gradient-to-tr from-seer-accent/22 to-seer-primary/20 md:from-seer-accent/35 md:to-seer-primary/30 rounded-full blur-3xl animate-float-medium"></div>
+        <div className="absolute top-[60%] right-1/3 w-64 md:w-72 h-64 md:h-72 bg-gradient-to-bl from-seer-primary/20 to-seer-accent/18 md:from-seer-primary/28 md:to-seer-accent/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute bottom-[10%] -left-20 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-tr from-seer-primary/18 to-seer-accent/20 md:from-seer-primary/25 md:to-seer-accent/30 rounded-full blur-3xl animate-float-medium" style={{ animationDelay: '5s' }}></div>
+        <div className="absolute bottom-[30%] right-[10%] w-72 md:w-80 h-72 md:h-80 bg-gradient-to-bl from-seer-accent/20 to-seer-primary/18 md:from-seer-accent/30 md:to-seer-primary/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '7s' }}></div>
         
-        {/* Animated dots with movement */}
-        <div className="absolute top-20 left-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-primary/40 rounded-full animate-float-dot-1" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-40 right-1/3 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent/40 rounded-full animate-float-dot-2" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-60 left-1/3 w-3 md:w-4 h-3 md:h-4 bg-seer-primary/40 rounded-full animate-float-dot-3" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[70%] right-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-accent/40 rounded-full animate-float-dot-1" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute top-[50%] left-1/5 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-primary/40 rounded-full animate-float-dot-2" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute top-1/2 right-1/5 w-3 md:w-5 h-3 md:h-5 bg-seer-accent/40 rounded-full animate-float-dot-3" style={{ animationDelay: '2.5s' }}></div>
-        <div className="absolute bottom-40 left-2/3 w-2 md:w-3 h-2 md:h-3 bg-seer-primary/40 rounded-full animate-float-dot-2" style={{ animationDelay: '1.2s' }}></div>
-        <div className="absolute top-1/4 right-2/3 w-3 md:w-4 h-3 md:h-4 bg-seer-accent/40 rounded-full animate-float-dot-1" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-[85%] left-1/2 w-2 md:w-3 h-2 md:h-3 bg-seer-primary/40 rounded-full animate-float-dot-3" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute bottom-[15%] right-1/2 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent/40 rounded-full animate-float-dot-1" style={{ animationDelay: '2.8s' }}></div>
+        {/* Animated dots with movement - visible on mobile */}
+        <div className="absolute top-20 left-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-40 right-1/3 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-60 left-1/3 w-3 md:w-4 h-3 md:h-4 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[70%] right-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-[50%] left-1/5 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute top-1/2 right-1/5 w-3 md:w-5 h-3 md:h-5 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2.5s' }}></div>
+        <div className="absolute bottom-40 left-2/3 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1.2s' }}></div>
+        <div className="absolute top-1/4 right-2/3 w-3 md:w-4 h-3 md:h-4 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-[85%] left-1/2 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute bottom-[15%] right-1/2 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '2.8s' }}></div>
       </div>
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-4 md:px-6 py-4 md:py-6 w-full">
         <div className="flex items-center space-x-2 md:space-x-3">
-          <div className="w-8 md:w-10 h-8 md:h-10 seer-glass rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/20">
+          <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
             <Eye className="w-5 md:w-6 h-5 md:h-6 text-white" />
           </div>
-          <span className="text-xl md:text-2xl font-bold font-serif text-white tracking-tight">Seer</span>
+          <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
         <div className="relative">
           <Link 
@@ -132,24 +135,24 @@ export default function LandingPage() {
       <main className="relative z-10 w-full px-6 min-h-[calc(100vh-100px)] flex flex-col">
         <div className="text-center flex-1 flex flex-col justify-center py-20">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 seer-glass text-white px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold mb-6 md:mb-8 mx-auto">
+          <div className="inline-flex items-center space-x-2 backdrop-blur-sm bg-white/80 text-seer-primary-dark px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold mb-6 md:mb-8 border border-seer-primary/20 mx-auto">
             <Sparkles className="w-3 md:w-4 h-3 md:h-4" />
             <span>Agent-Powered AI Radar</span>
           </div>
 
           {/* Main heading */}
           <div>
-            <h1 className="text-4xl md:text-7xl font-serif font-semibold tracking-tight text-white mb-3 md:mb-4 leading-none">
+            <h1 className="text-4xl md:text-7xl font-normal tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
               Stay Ahead in AI
             </h1>
-            <h1 className="text-4xl md:text-7xl font-serif font-semibold tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
+            <h1 className="text-4xl md:text-7xl font-normal tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
               Without the Overwhelm
             </h1>
           </div>
 
           {/* Description */}
           <div>
-            <p className="text-base md:text-xl text-white/80 max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed">
+            <p className="text-base md:text-xl text-slate-600 font-light max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed">
               Seer delivers personalized AI news, blogs, and insights tailored to your role and 
               projects. Get smart summaries, actionable takeaways, and never miss what 
               matters to your career.
@@ -180,12 +183,12 @@ export default function LandingPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email to join the waitlist"
                 required
-                className="flex-1 min-w-0 px-4 md:px-6 py-3 md:py-4 text-sm md:text-base text-white rounded-xl focus:outline-none transition-all seer-glass"
+                className="flex-1 min-w-0 px-4 md:px-6 py-3 md:py-4 text-sm md:text-base rounded-xl border-2 border-slate-200 focus:border-seer-primary focus:outline-none focus:ring-2 focus:ring-seer-primary/20 transition-all bg-white/80 backdrop-blur-sm"
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-shrink-0 w-12 md:w-14 h-12 md:h-14 rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-seer-primary/20 seer-glass"
+                className="flex-shrink-0 w-12 md:w-14 h-12 md:h-14 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-seer-primary/30"
                 title={isSubmitting ? 'Joining...' : 'Join Waitlist'}
               >
                 <Check className="w-5 md:w-6 h-5 md:h-6 text-white" />
@@ -194,10 +197,10 @@ export default function LandingPage() {
             {submitMessage && (
               <p className={`mt-3 md:mt-4 text-center text-sm md:text-base font-medium ${
                 submitMessage.includes('Thanks') 
-                  ? 'text-green-400' 
+                  ? 'text-green-600' 
                   : submitMessage.includes('already') 
-                    ? 'text-amber-400' 
-                    : 'text-red-400'
+                    ? 'text-amber-600' 
+                    : 'text-red-600'
               }`}>
                 {submitMessage}
               </p>
@@ -209,9 +212,9 @@ export default function LandingPage() {
         <div className="pb-10 flex flex-col items-center">
           <button 
             onClick={scrollToFeatures}
-            className="group flex flex-col items-center space-y-2 text-white/60 hover:text-white transition-colors duration-300 cursor-pointer"
+            className="group flex flex-col items-center space-y-2 text-slate-400 hover:text-seer-primary transition-colors duration-300 cursor-pointer"
           >
-            <span className="text-xs md:text-sm font-medium">Discover More</span>
+            <span className="text-xs md:text-sm font-light">Discover More</span>
             <ChevronDown className="w-6 md:w-8 h-6 md:h-8 animate-bounce-slow" />
           </button>
         </div>
@@ -221,10 +224,10 @@ export default function LandingPage() {
       <section id="features-section" className="relative z-10 w-full px-6 py-32 min-h-screen">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-20">
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-3 md:mb-4">
+          <h2 className="text-3xl md:text-5xl font-extralight text-slate-900 mb-3 md:mb-4">
             Seer The Future Of AI
           </h2>
-          <p className="text-sm md:text-xl text-white/70 max-w-5xl mx-auto px-4">
+          <p className="text-sm md:text-xl text-slate-600 font-light max-w-5xl mx-auto px-4">
             Powerful features designed to help tech professionals stay ahead of the coming wave
           </p>
         </div>
@@ -234,17 +237,17 @@ export default function LandingPage() {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="seer-card p-6 md:p-10 group"
+              className="seer-card p-6 md:p-10 group hover:bg-gradient-to-br hover:from-white hover:to-seer-primary-light/40"
             >
               <div className="flex flex-col items-center text-center space-y-3 md:space-y-4">
-                <div className="flex-shrink-0 w-12 md:w-16 h-12 md:h-16 bg-gradient-to-r from-seer-primary/30 to-seer-accent/30 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-seer-primary/10">
+                <div className="flex-shrink-0 w-12 md:w-16 h-12 md:h-16 bg-gradient-to-r from-seer-primary to-seer-accent rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-seer-primary/20">
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-2xl font-serif font-bold text-white mb-2 md:mb-3">
+                  <h3 className="text-lg md:text-2xl font-light text-slate-900 mb-2 md:mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-sm md:text-base text-white/70 leading-relaxed">
+                  <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -277,16 +280,16 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 py-6 md:py-8 seer-glass">
+      <footer className="relative z-10 border-t border-slate-200/50 py-6 md:py-8 backdrop-blur-sm">
         <div className="w-full px-6 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
           <div className="flex items-center space-x-2 md:space-x-3">
-            <div className="w-6 md:w-8 h-6 md:h-8 seer-glass rounded-lg flex items-center justify-center shadow-md shadow-seer-primary/10">
+            <div className="w-6 md:w-8 h-6 md:h-8 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg flex items-center justify-center shadow-md shadow-seer-primary/30">
               <Eye className="w-4 md:w-5 h-4 md:h-5 text-white" />
             </div>
-            <span className="text-xs md:text-sm font-semibold font-serif text-white">Seer</span>
-            <span className="text-xs md:text-sm text-white/60 hidden sm:inline">AI News for Tech Professionals</span>
+            <span className="text-xs md:text-sm font-semibold text-slate-700">Seer</span>
+            <span className="text-xs md:text-sm text-slate-500 font-light hidden sm:inline">AI News for Tech Professionals</span>
           </div>
-          <div className="text-xs md:text-sm text-white/50 text-center md:text-left">
+          <div className="text-xs md:text-sm text-slate-400 font-light text-center md:text-left">
             © 2025 Seer. All rights reserved.
           </div>
         </div>

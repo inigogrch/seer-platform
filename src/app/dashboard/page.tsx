@@ -218,16 +218,16 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       {/* Header */}
-      <header className="seer-glass border-b border-white/10 sticky top-0 z-50 backdrop-blur-xl">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 seer-glass rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/20">
+              <div className="w-10 h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
                 <Eye className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold font-serif text-white tracking-tight">Seer</span>
+              <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
             </div>
             <nav className="flex items-center space-x-2">
               <button className="seer-nav-item active">
@@ -266,21 +266,21 @@ export default function DashboardPage() {
         <div className={`mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-seer-primary/30 to-seer-accent/30 rounded-2xl flex items-center justify-center shadow-lg shadow-seer-primary/20">
+              <div className="w-14 h-14 bg-gradient-to-br from-seer-primary to-seer-accent rounded-2xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
                 <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-serif font-bold text-white tracking-tight">Daily Brief</h1>
-                <p className="text-white/70 mt-1">Curated for Product Managers • Tuesday, October 14</p>
+                <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Daily Brief</h1>
+                <p className="text-slate-600 mt-1">Curated for Product Managers • Tuesday, October 14</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="px-4 py-2 seer-glass rounded-lg">
-                <div className="text-sm text-white/70">Today</div>
-                <div className="text-lg font-bold text-white">{personalizedStories.length} stories</div>
+              <div className="px-4 py-2 bg-seer-primary-light rounded-lg border border-seer-primary/20">
+                <div className="text-sm text-slate-600">Today</div>
+                <div className="text-lg font-bold text-slate-900">{personalizedStories.length} stories</div>
               </div>
-              <div className="px-4 py-2 seer-glass rounded-lg">
-                <div className="text-sm text-white/70">Avg Match</div>
+              <div className="px-4 py-2 bg-seer-primary-light rounded-lg border border-seer-primary/20">
+                <div className="text-sm text-slate-600">Avg Match</div>
                 <div className="text-lg font-bold text-seer-primary">89%</div>
               </div>
             </div>
@@ -290,103 +290,103 @@ export default function DashboardPage() {
         {/* Dashboard Insights */}
         <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
           {/* Top Categories */}
-          <div className="seer-card p-6">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white/90">Top Categories Today</h3>
+              <h3 className="text-sm font-semibold text-slate-700">Top Categories Today</h3>
               <Target className="w-5 h-5 text-seer-primary" />
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Product Strategy</span>
+                <span className="text-sm text-slate-600">Product Strategy</span>
                 <div className="flex items-center space-x-2">
-                  <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '85%' }}></div>
                   </div>
-                  <span className="text-xs font-semibold text-white/90">85%</span>
+                  <span className="text-xs font-semibold text-slate-700">85%</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Analytics</span>
+                <span className="text-sm text-slate-600">Analytics</span>
                 <div className="flex items-center space-x-2">
-                  <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '72%' }}></div>
                   </div>
-                  <span className="text-xs font-semibold text-white/90">72%</span>
+                  <span className="text-xs font-semibold text-slate-700">72%</span>
             </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Code Review</span>
+                <span className="text-sm text-slate-600">Code Review</span>
                 <div className="flex items-center space-x-2">
-                  <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '68%' }}></div>
                   </div>
-                  <span className="text-xs font-semibold text-white/90">68%</span>
+                  <span className="text-xs font-semibold text-slate-700">68%</span>
             </div>
               </div>
             </div>
           </div>
 
           {/* Reading Progress */}
-          <div className="seer-card p-6">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white/90">This Week's Activity</h3>
+              <h3 className="text-sm font-semibold text-slate-700">This Week's Activity</h3>
               <BarChart3 className="w-5 h-5 text-seer-primary" />
             </div>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-white/70">Stories Read</span>
-                  <span className="text-sm font-bold text-white">24/32</span>
+                  <span className="text-xs text-slate-600">Stories Read</span>
+                  <span className="text-sm font-bold text-slate-900">24/32</span>
                 </div>
-                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-seer-primary to-seer-accent rounded-full" style={{ width: '75%' }}></div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-white">18</div>
-                  <div className="text-xs text-white/70">Saved</div>
+                  <div className="text-xl font-bold text-slate-900">18</div>
+                  <div className="text-xs text-slate-600">Saved</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xl font-bold text-white">12</div>
-                  <div className="text-xs text-white/70">Summarized</div>
+                  <div className="text-xl font-bold text-slate-900">12</div>
+                  <div className="text-xs text-slate-600">Summarized</div>
         </div>
               </div>
               </div>
             </div>
             
           {/* Trending Topics */}
-          <div className="seer-card p-6">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white/90">Trending Topics</h3>
+              <h3 className="text-sm font-semibold text-slate-700">Trending Topics</h3>
               <TrendingUp className="w-5 h-5 text-seer-primary" />
             </div>
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
-                  <span className="text-sm text-white/80">GPT-4 Turbo</span>
+                  <span className="text-sm text-slate-700">GPT-4 Turbo</span>
                 </div>
                 <span className="text-xs font-semibold text-seer-primary">↑ 45%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
-                  <span className="text-sm text-white/80">Gemini AI</span>
+                  <span className="text-sm text-slate-700">Gemini AI</span>
                 </div>
                 <span className="text-xs font-semibold text-seer-primary">↑ 32%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
-                  <span className="text-sm text-white/80">Claude 3</span>
+                  <span className="text-sm text-slate-700">Claude 3</span>
                 </div>
                 <span className="text-xs font-semibold text-seer-primary">↑ 28%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-gradient-to-r from-seer-primary to-seer-accent rounded-full"></div>
-                  <span className="text-sm text-white/80">Product Analytics</span>
+                  <span className="text-sm text-slate-700">Product Analytics</span>
                 </div>
                 <span className="text-xs font-semibold text-seer-primary">↑ 21%</span>
               </div>
@@ -397,13 +397,13 @@ export default function DashboardPage() {
         {/* Today's Personalized Stories - Horizontal Scroll */}
         <div className={`mb-10 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-serif font-bold text-white">Today's Personalized Stories</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Today's Personalized Stories</h2>
             <div className="flex items-center space-x-2">
-              <button className="p-2 rounded-lg seer-glass hover:bg-white/10 transition-colors">
-                <ChevronLeft className="w-5 h-5 text-white/70" />
+              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                <ChevronLeft className="w-5 h-5 text-slate-600" />
               </button>
-              <button className="p-2 rounded-lg seer-glass hover:bg-white/10 transition-colors">
-                <ChevronRight className="w-5 h-5 text-white/70" />
+              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                <ChevronRight className="w-5 h-5 text-slate-600" />
               </button>
             </div>
           </div>
@@ -414,12 +414,12 @@ export default function DashboardPage() {
                 <article
                   key={story.id}
                   onClick={() => window.open(story.url, '_blank')}
-                  className={`group seer-card cursor-pointer w-[380px] flex-shrink-0 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer w-[380px] flex-shrink-0 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                   style={{ animationDelay: `${0.3 + index * 0.1}s` }}
                 >
                   {/* Image */}
                   {story.image && (
-                    <div className="relative h-48 w-full rounded-t-2xl overflow-hidden bg-white/5">
+                    <div className="relative h-48 w-full rounded-t-2xl overflow-hidden bg-slate-100">
                       <img 
                         src={story.image} 
                         alt={story.title}
@@ -432,8 +432,8 @@ export default function DashboardPage() {
                         }}
                         className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
                           savedStories.has(story.id)
-                            ? 'bg-white/20 text-white'
-                            : 'bg-white/10 text-white/80 hover:bg-white/20'
+                            ? 'bg-seer-primary text-white'
+                            : 'bg-white/90 text-slate-600 hover:bg-seer-primary hover:text-white'
                         }`}
                       >
                         <Bookmark className={`w-4 h-4 ${savedStories.has(story.id) ? 'fill-current' : ''}`} />
@@ -450,19 +450,19 @@ export default function DashboardPage() {
                           <span className="text-sm font-semibold">{story.source}</span>
                         </div>
                         {story.trending && (
-                          <Flame className="w-4 h-4 text-orange-400" />
+                          <Flame className="w-4 h-4 text-orange-500" />
                       )}
                     </div>
                       <span className="text-sm font-semibold text-seer-primary">{story.relevanceScore}% match</span>
                   </div>
 
                     {/* Title */}
-                    <h3 className="text-lg font-serif font-bold text-white mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
                     {story.title}
                   </h3>
                   
                     {/* Summary */}
-                    <p className="text-sm text-white/70 mb-4 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
                     {story.summary}
                   </p>
 
@@ -471,7 +471,7 @@ export default function DashboardPage() {
                     {story.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-white/10 text-white/80 text-xs rounded-md font-medium"
+                        className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md font-medium"
                       >
                         {tag}
                       </span>
@@ -479,8 +479,8 @@ export default function DashboardPage() {
                   </div>
                   
                     {/* Footer with Summarize button */}
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                      <div className="flex items-center space-x-3 text-xs text-white/60">
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                      <div className="flex items-center space-x-3 text-xs text-slate-500">
                         <span className="flex items-center space-x-1">
                           <Clock className="w-3 h-3" />
                       <span>{story.readTime}</span>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
                           e.stopPropagation()
                           // Handle summarize action
                         }}
-                        className="px-3.5 py-1.5 text-sm font-semibold seer-glass text-white hover:bg-white/10 rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/20"
+                        className="px-3.5 py-1.5 text-sm font-semibold bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/40"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Summarize</span>
@@ -524,7 +524,7 @@ export default function DashboardPage() {
         {showAllStories && (
           <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-serif font-bold text-white">All AI Stories</h2>
+              <h2 className="text-2xl font-bold text-slate-900">All AI Stories</h2>
               <button 
                 onClick={() => setShowAllStories(false)}
                 className="text-seer-primary hover:text-seer-primary-hover font-medium inline-flex items-center space-x-1"
@@ -535,31 +535,31 @@ export default function DashboardPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="seer-card p-6 mb-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 p-6 mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
               <div className="flex-1 max-w-2xl">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search stories, topics, or companies..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 seer-input"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent transition-all duration-300 placeholder-slate-400"
                   />
                 </div>
             </div>
 
               <div className="flex items-center space-x-3 overflow-x-auto">
                 <div className="flex items-center space-x-2">
-                  <Filter className="w-4 h-4 text-white/50" />
-                  <span className="text-sm font-medium text-white/70 whitespace-nowrap">Filter by:</span>
+                  <Filter className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-medium text-slate-700 whitespace-nowrap">Filter by:</span>
                 </div>
                 
                 <select 
                   value={sourceFilter}
                   onChange={(e) => setSourceFilter(e.target.value)}
-                  className="px-3 py-2 seer-glass text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
                 >
                   <option value="">All sources</option>
                   <option value="TechCrunch">TechCrunch</option>
@@ -570,9 +570,31 @@ export default function DashboardPage() {
                   </select>
                   
                 <select 
+                  value={contentTypeFilter}
+                  onChange={(e) => setContentTypeFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All Content Typess</option>
+                  <option value="news">Breaking News</option>
+                  <option value="research">Research</option>
+                  <option value="analysis">Analysis</option>
+                  </select>
+                  
+                <select 
+                  value={industryFilter}
+                  onChange={(e) => setIndustryFilter(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
+                >
+                  <option value="">All industries</option>
+                  <option value="tech">Technology</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="finance">Finance</option>
+                  </select>
+                  
+                <select 
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 seer-glass text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent"
                 >
                   <option value="">All categories</option>
                   <option value="Product Strategy">Product Strategy</option>
@@ -590,12 +612,12 @@ export default function DashboardPage() {
                 <article
                   key={story.id}
                   onClick={() => window.open(story.url, '_blank')}
-                  className={`group seer-card cursor-pointer ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
+                  className={`group bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-seer-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                   style={{ animationDelay: `${1 + index * 0.05}s` }}
                 >
                 {/* Image */}
                 {story.image && (
-                  <div className="relative h-40 w-full rounded-t-2xl overflow-hidden bg-white/5">
+                  <div className="relative h-40 w-full rounded-t-2xl overflow-hidden bg-slate-100">
                     <img 
                       src={story.image} 
                       alt={story.title}
@@ -608,14 +630,14 @@ export default function DashboardPage() {
                       }}
                       className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
                         savedStories.has(story.id)
-                          ? 'bg-white/20 text-white'
-                          : 'bg-white/10 text-white/80 hover:bg-white/20'
+                          ? 'bg-seer-primary text-white'
+                          : 'bg-white/90 text-slate-600 hover:bg-seer-primary hover:text-white'
                       }`}
                     >
                       <Bookmark className={`w-4 h-4 ${savedStories.has(story.id) ? 'fill-current' : ''}`} />
                     </button>
                       {story.trending && (
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-orange-500/80 backdrop-blur-md text-white text-xs font-semibold rounded-full inline-flex items-center space-x-1">
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full inline-flex items-center space-x-1">
                         <Flame className="w-3 h-3" />
                         <span>Trending</span>
                         </div>
@@ -631,12 +653,12 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-base font-serif font-bold text-white mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
+                  <h3 className="text-base font-bold text-slate-900 mb-2 leading-tight line-clamp-2 group-hover:text-seer-primary transition-colors">
                     {story.title}
                   </h3>
                   
                   {/* Summary */}
-                  <p className="text-sm text-white/70 mb-4 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
                     {story.summary}
                   </p>
 
@@ -645,7 +667,7 @@ export default function DashboardPage() {
                     {story.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 bg-white/10 text-white/80 text-xs rounded font-medium"
+                        className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded font-medium"
                       >
                         {tag}
                       </span>
@@ -653,8 +675,8 @@ export default function DashboardPage() {
                   </div>
                   
                   {/* Footer with Summarize button */}
-                  <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                    <div className="flex items-center space-x-2 text-xs text-white/60">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex items-center space-x-2 text-xs text-slate-500">
                       <span className="flex items-center space-x-1">
                         <Clock className="w-3 h-3" />
                       <span>{story.readTime}</span>
@@ -668,7 +690,7 @@ export default function DashboardPage() {
                         e.stopPropagation()
                         // Handle summarize action
                       }}
-                      className="px-3.5 py-1.5 text-sm font-semibold seer-glass text-white hover:bg-white/10 rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/20"
+                      className="px-3.5 py-1.5 text-sm font-semibold bg-seer-primary text-white hover:bg-seer-primary-hover rounded-lg transition-colors inline-flex items-center space-x-1.5 shadow-md shadow-seer-primary/40"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Summarize</span>
