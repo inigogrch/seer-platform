@@ -107,16 +107,16 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <header className="seer-glass border-b border-white/10 sticky top-0 z-50 backdrop-blur-xl">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 seer-glass rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/20">
                 <Eye className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
+              <span className="text-2xl font-bold font-serif text-white tracking-tight">Seer</span>
             </div>
             <nav className="flex items-center space-x-2">
               <button 
@@ -151,21 +151,21 @@ export default function ChatPage() {
 
       <div className="flex h-[calc(100vh-80px)]">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-slate-200 flex flex-col">
-          <div className="p-6 border-b border-slate-200">
+        <div className="w-80 seer-glass border-r border-white/10 flex flex-col backdrop-blur-xl">
+          <div className="p-6 border-b border-white/10">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-seer-primary/30 to-seer-accent/30 rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/10">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-heading-2 text-slate-900">AI Assistant</h2>
-                <p className="text-sm text-slate-600">Your personalized AI news guide</p>
+                <h2 className="text-heading-2 text-white">AI Assistant</h2>
+                <p className="text-sm text-white/70">Your personalized AI news guide</p>
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-semibold font-serif text-white mb-4">Quick Actions</h3>
             <div className="space-y-3">
               {quickActions.map((action, index) => (
                 <button
@@ -175,12 +175,12 @@ export default function ChatPage() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-seer-light-teal rounded-lg flex items-center justify-center text-seer-teal">
+                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-seer-primary">
                       {action.icon}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-slate-900 text-sm mb-1">{action.title}</h4>
-                      <p className="text-xs text-slate-600">{action.description}</p>
+                      <h4 className="font-semibold text-white text-sm mb-1">{action.title}</h4>
+                      <p className="text-xs text-white/60">{action.description}</p>
                     </div>
                   </div>
                 </button>
@@ -204,8 +204,8 @@ export default function ChatPage() {
                     <div className={`flex items-start space-x-3 ${msg.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         msg.type === 'user' 
-                          ? 'bg-seer-teal text-white' 
-                          : 'bg-gradient-to-br from-seer-teal to-seer-teal-hover text-white'
+                          ? 'bg-white/10 text-white' 
+                          : 'bg-gradient-to-br from-seer-primary/30 to-seer-accent/30 text-white'
                       }`}>
                         {msg.type === 'user' ? (
                           <User className="w-5 h-5" />
@@ -216,12 +216,12 @@ export default function ChatPage() {
                       <div className={`flex-1 ${msg.type === 'user' ? 'text-right' : ''}`}>
                         <div className={`inline-block p-4 rounded-2xl ${
                           msg.type === 'user'
-                            ? 'bg-seer-teal text-white'
-                            : 'bg-white border border-slate-200 text-slate-900'
+                            ? 'bg-white/15 text-white backdrop-blur-md border border-white/20'
+                            : 'bg-white/10 border border-white/10 text-white backdrop-blur-md'
                         }`}>
                           <p className="text-body leading-relaxed">{msg.content}</p>
                         </div>
-                        <div className={`flex items-center space-x-2 mt-2 text-xs text-slate-500 ${msg.type === 'user' ? 'justify-end' : ''}`}>
+                        <div className={`flex items-center space-x-2 mt-2 text-xs text-white/60 ${msg.type === 'user' ? 'justify-end' : ''}`}>
                           <Clock className="w-3 h-3" />
                           <span>{msg.timestamp}</span>
                         </div>
@@ -234,7 +234,7 @@ export default function ChatPage() {
           </div>
 
           {/* Message Input */}
-          <div className="border-t border-slate-200 bg-white p-6">
+          <div className="border-t border-white/10 seer-glass p-6 backdrop-blur-xl">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-end space-x-4">
                 <div className="flex-1">
@@ -259,7 +259,7 @@ export default function ChatPage() {
                   <Send className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-slate-500 mt-2">
+              <p className="text-sm text-white/60 mt-2">
                 Press Enter to send, Shift+Enter for new line
               </p>
             </div>

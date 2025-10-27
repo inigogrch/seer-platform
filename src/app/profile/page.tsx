@@ -74,40 +74,40 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="seer-glass border-b border-white/10 sticky top-0 z-50 backdrop-blur-xl">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-seer-teal rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 seer-glass rounded-lg flex items-center justify-center">
                 <Eye className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">Seer</span>
+              <span className="text-xl font-semibold font-serif text-white">Seer</span>
             </div>
             <nav className="flex items-center space-x-6">
               <button 
                 onClick={() => router.push('/dashboard')}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-white/70 hover:text-white transition-colors"
               >
                 <Grid3X3 className="w-4 h-4" />
                 <span>Dashboard</span>
               </button>
               <button 
                 onClick={() => router.push('/chat')}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-white/70 hover:text-white transition-colors"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chat</span>
               </button>
               <button 
                 onClick={() => router.push('/saved')}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-white/70 hover:text-white transition-colors"
               >
                 <Bookmark className="w-4 h-4" />
                 <span>Saved Stories</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-seer-teal text-white rounded-lg">
+              <button className="flex items-center space-x-2 px-4 py-2 seer-glass text-white rounded-lg">
                 <User className="w-4 h-4" />
                 <span>Profile</span>
               </button>
@@ -119,10 +119,10 @@ export default function ProfilePage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+        <div className="seer-card p-8 mb-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-seer-primary/30 to-seer-accent/30 rounded-full flex items-center justify-center">
                 <span className="text-2xl font-bold text-white">
                   {profileData.name.split(' ').map(n => n[0]).join('')}
                 </span>
@@ -134,23 +134,23 @@ export default function ProfilePage() {
                       type="text"
                       value={editData.name}
                       onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                      className="text-2xl font-bold text-gray-900 bg-transparent border-b border-gray-300 focus:border-seer-teal outline-none"
+                      className="text-2xl font-serif font-bold text-white bg-white/5 border-b border-white/30 focus:border-white/50 outline-none"
                     />
                     <input
                       type="email"
                       value={editData.email}
                       onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                      className="text-gray-600 bg-transparent border-b border-gray-300 focus:border-seer-teal outline-none"
+                      className="text-white/80 bg-white/5 border-b border-white/30 focus:border-white/50 outline-none"
                     />
                   </div>
                 ) : (
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">{profileData.name}</h1>
-                    <p className="text-gray-600 mb-2">{profileData.email}</p>
+                    <h1 className="text-2xl font-serif font-bold text-white mb-1">{profileData.name}</h1>
+                    <p className="text-white/70 mb-2">{profileData.email}</p>
                   </div>
                 )}
                 
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <div className="flex items-center space-x-4 text-sm text-white/60">
                   <div className="flex items-center space-x-1">
                     <Briefcase className="w-4 h-4" />
                     {isEditing ? (
@@ -158,7 +158,7 @@ export default function ProfilePage() {
                         type="text"
                         value={editData.role}
                         onChange={(e) => setEditData({ ...editData, role: e.target.value })}
-                        className="bg-transparent border-b border-gray-300 focus:border-seer-teal outline-none"
+                        className="bg-white/5 border-b border-white/30 focus:border-white/50 outline-none"
                       />
                     ) : (
                       <span>{profileData.role}</span>
@@ -171,7 +171,7 @@ export default function ProfilePage() {
                         type="text"
                         value={editData.location}
                         onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                        className="bg-transparent border-b border-gray-300 focus:border-seer-teal outline-none"
+                        className="bg-white/5 border-b border-white/30 focus:border-white/50 outline-none"
                       />
                     ) : (
                       <span>{profileData.location}</span>
@@ -190,14 +190,14 @@ export default function ProfilePage() {
                 <>
                   <button
                     onClick={handleSave}
-                    className="flex items-center space-x-2 px-4 py-2 bg-seer-teal text-white rounded-lg hover:bg-seer-teal-hover transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 seer-glass text-white rounded-lg hover:bg-white/10 transition-colors"
                   >
                     <Check className="w-4 h-4" />
                     <span>Save</span>
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/5 text-white/80 rounded-lg hover:bg-white/10 transition-colors"
                   >
                     <X className="w-4 h-4" />
                     <span>Cancel</span>
@@ -206,7 +206,7 @@ export default function ProfilePage() {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/5 text-white/80 rounded-lg hover:bg-white/10 transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Edit Profile</span>
@@ -217,28 +217,28 @@ export default function ProfilePage() {
 
           {/* Bio */}
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">About</h3>
+            <h3 className="text-sm font-medium text-white/90 mb-2">About</h3>
             {isEditing ? (
               <textarea
                 value={editData.bio}
                 onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                 rows={3}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-seer-teal focus:border-transparent resize-none"
+                className="w-full p-3 seer-glass text-white rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-white/30"
               />
             ) : (
-              <p className="text-gray-600 leading-relaxed">{profileData.bio}</p>
+              <p className="text-white/70 leading-relaxed">{profileData.bio}</p>
             )}
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center mb-2 text-seer-teal">
+              <div key={index} className="bg-white/5 rounded-lg p-4 text-center">
+                <div className="flex items-center justify-center mb-2 text-seer-primary">
                   {stat.icon}
                 </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                <div className="text-sm text-white/70">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -247,28 +247,28 @@ export default function ProfilePage() {
         {/* Settings Sections */}
         <div className="space-y-6">
           {/* Notifications */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="seer-card p-6">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-seer-light-teal rounded-lg flex items-center justify-center">
-                <Bell className="w-5 h-5 text-seer-teal" />
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                <Bell className="w-5 h-5 text-seer-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Notification Preferences</h2>
-                <p className="text-sm text-gray-600">Manage how you receive updates from Seer</p>
+                <h2 className="text-lg font-serif font-semibold text-white">Notification Preferences</h2>
+                <p className="text-sm text-white/70">Manage how you receive updates from Seer</p>
               </div>
             </div>
 
             <div className="space-y-4">
               {preferences.map((pref) => (
-                <div key={pref.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                <div key={pref.id} className="flex items-center justify-between py-3 border-b border-white/10 last:border-b-0">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{pref.label}</div>
-                    <div className="text-sm text-gray-600">{pref.description}</div>
+                    <div className="font-medium text-white">{pref.label}</div>
+                    <div className="text-sm text-white/70">{pref.description}</div>
                   </div>
                   <button
                     onClick={() => toggleNotification(pref.id)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      notificationSettings[pref.id] ? 'bg-seer-teal' : 'bg-gray-200'
+                      notificationSettings[pref.id] ? 'bg-seer-primary' : 'bg-white/20'
                     }`}
                   >
                     <span
@@ -283,49 +283,49 @@ export default function ProfilePage() {
           </div>
 
           {/* Account Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="seer-card p-6">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-seer-light-teal rounded-lg flex items-center justify-center">
-                <Settings className="w-5 h-5 text-seer-teal" />
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                <Settings className="w-5 h-5 text-seer-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Account Settings</h2>
-                <p className="text-sm text-gray-600">Manage your account and data</p>
+                <h2 className="text-lg font-serif font-semibold text-white">Account Settings</h2>
+                <p className="text-sm text-white/70">Manage your account and data</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
                 <div className="flex items-center space-x-3">
-                  <Download className="w-5 h-5 text-gray-600" />
+                  <Download className="w-5 h-5 text-white/70" />
                   <div className="text-left">
-                    <div className="font-medium text-gray-900">Export Data</div>
-                    <div className="text-sm text-gray-600">Download your saved stories and reading history</div>
+                    <div className="font-medium text-white">Export Data</div>
+                    <div className="text-sm text-white/70">Download your saved stories and reading history</div>
                   </div>
                 </div>
-                <div className="text-gray-400">→</div>
+                <div className="text-white/40">→</div>
               </button>
 
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
                 <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-gray-600" />
+                  <Shield className="w-5 h-5 text-white/70" />
                   <div className="text-left">
-                    <div className="font-medium text-gray-900">Privacy Settings</div>
-                    <div className="text-sm text-gray-600">Manage your data privacy and sharing preferences</div>
+                    <div className="font-medium text-white">Privacy Settings</div>
+                    <div className="text-sm text-white/70">Manage your data privacy and sharing preferences</div>
                   </div>
                 </div>
-                <div className="text-gray-400">→</div>
+                <div className="text-white/40">→</div>
               </button>
 
-              <button className="w-full flex items-center justify-between p-4 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+              <button className="w-full flex items-center justify-between p-4 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors">
                 <div className="flex items-center space-x-3">
-                  <LogOut className="w-5 h-5 text-red-600" />
+                  <LogOut className="w-5 h-5 text-red-400" />
                   <div className="text-left">
-                    <div className="font-medium text-red-900">Sign Out</div>
-                    <div className="text-sm text-red-600">Sign out of your Seer account</div>
+                    <div className="font-medium text-red-400">Sign Out</div>
+                    <div className="text-sm text-red-400/70">Sign out of your Seer account</div>
                   </div>
                 </div>
-                <div className="text-red-400">→</div>
+                <div className="text-red-400/60">→</div>
               </button>
             </div>
           </div>

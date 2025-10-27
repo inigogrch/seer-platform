@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
@@ -6,13 +7,14 @@
 @tailwind utilities;
 
 :root {
-  --seer-primary: #4ECDC4;
-  --seer-primary-hover: #45B7B8;
-  --seer-primary-light: #E8FFFE;
-  --seer-primary-dark: #3A9B96;
-  --seer-accent: #26D0CE;
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --seer-primary: #60A5FA;
+  --seer-primary-hover: #3B82F6;
+  --seer-primary-light: rgba(96, 165, 250, 0.15);
+  --seer-primary-dark: #2563EB;
+  --seer-accent: #818CF8;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-hover: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -25,26 +27,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   letter-spacing: -0.011em;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  color: white;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Animations */
@@ -259,31 +263,46 @@ body {
 
 @layer components {
   .seer-btn-primary {
-    @apply bg-seer-primary hover:bg-seer-primary-hover text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95;
-    box-shadow: 0 4px 14px 0 rgba(78, 205, 196, 0.3);
+    @apply bg-white/10 hover:bg-white/15 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(96, 165, 250, 0.2);
   }
 
   .seer-btn-primary:hover {
-    box-shadow: 0 8px 25px 0 rgba(78, 205, 196, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(96, 165, 250, 0.35);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .seer-btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold px-8 py-4 rounded-xl border border-gray-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95;
+    @apply bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .seer-btn-ghost {
-    @apply bg-transparent hover:bg-seer-primary-light text-seer-primary font-semibold px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105;
+    @apply bg-transparent hover:bg-white/5 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .seer-text-gradient {
-    background: linear-gradient(135deg, var(--seer-primary) 0%, var(--seer-accent) 100%);
+    background: linear-gradient(135deg, #60A5FA 0%, #818CF8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .seer-card {
-    @apply bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1;
+    @apply rounded-2xl transition-all duration-300 hover:-translate-y-1;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .seer-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(96, 165, 250, 0.15);
   }
 
   .seer-card-interactive {
@@ -291,71 +310,97 @@ body {
   }
 
   .seer-glass {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .seer-input {
-    @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-seer-primary focus:border-transparent transition-all duration-300 placeholder-gray-400;
+    @apply w-full px-4 py-3 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-300;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .seer-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
   }
 
   .seer-input:focus {
-    box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
   }
 
   .seer-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-all duration-200;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .seer-nav-item {
-    @apply flex items-center space-x-2 px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium;
+    @apply flex items-center space-x-2 px-4 py-3 text-white/70 hover:text-white rounded-lg transition-all duration-200 font-medium;
+    background: transparent;
+  }
+
+  .seer-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .seer-nav-item.active {
-    @apply bg-seer-primary text-white hover:bg-seer-primary-hover hover:text-white;
+    @apply text-white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .story-card-horizontal {
-    @apply bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 transition-all duration-300 hover:shadow-xl hover:shadow-seer-primary/10 hover:-translate-y-1 cursor-pointer;
+    @apply rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .story-card-horizontal:hover {
     transform: translateY(-4px) scale(1.01);
-    border-color: rgba(78, 205, 196, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(96, 165, 250, 0.2);
   }
 
   .text-display-1 {
-    @apply text-6xl md:text-7xl font-black tracking-tight;
-    font-feature-settings: 'ss01', 'cv02', 'cv03', 'cv04';
+    @apply text-6xl md:text-7xl font-black tracking-tight text-white;
+    font-family: 'Playfair Display', serif;
   }
 
   .text-display-2 {
-    @apply text-4xl md:text-5xl font-bold tracking-tight;
-    font-feature-settings: 'ss01', 'cv02', 'cv03', 'cv04';
+    @apply text-4xl md:text-5xl font-bold tracking-tight text-white;
+    font-family: 'Playfair Display', serif;
   }
 
   .text-heading-1 {
-    @apply text-3xl md:text-4xl font-bold tracking-tight;
-    font-feature-settings: 'ss01', 'cv02', 'cv03', 'cv04';
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-white;
+    font-family: 'Playfair Display', serif;
   }
 
   .text-heading-2 {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
-    font-feature-settings: 'ss01', 'cv02', 'cv03', 'cv04';
+    @apply text-2xl md:text-3xl font-bold tracking-tight text-white;
+    font-family: 'Playfair Display', serif;
   }
 
   .text-body-large {
-    @apply text-lg leading-relaxed;
+    @apply text-lg leading-relaxed text-white/80;
     font-feature-settings: 'cv02', 'cv03', 'cv04';
   }
 
   .text-body {
-    @apply text-base leading-relaxed;
+    @apply text-base leading-relaxed text-white/80;
     font-feature-settings: 'cv02', 'cv03', 'cv04';
   }
 
   .text-mono {
     font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+    color: white;
   }
 }
