@@ -142,10 +142,10 @@ export default function LandingPage() {
 
           {/* Main heading */}
           <div>
-            <h1 className="text-4xl md:text-7xl font-normal tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
+            <h1 className="text-4xl md:text-7xl font-light tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
               Stay Ahead in AI
             </h1>
-            <h1 className="text-4xl md:text-7xl font-normal tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
+            <h1 className="text-4xl md:text-7xl font-light tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
               Without the Overwhelm
             </h1>
           </div>

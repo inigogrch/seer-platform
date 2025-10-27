@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@supabase/supabase-js'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
+
+// Initialize Supabase admin client for caching
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // System prompt for the onboarding agent
 const SYSTEM_PROMPT = `You are an expert at understanding professional roles and generating relevant, specific options for user onboarding.
@@ -11,11 +24,11 @@ const SYSTEM_PROMPT = `You are an expert at understanding professional roles and
 Your goal is to generate contextually relevant options based on the user's accumulated profile.
 
 Guidelines:
-- Keep options concise (2-5 words each)
+- Keep options concise (2-10 words each)
 - Be specific to the industry and role
 - Prioritize practical, common choices
-- Return exactly the number of options requested
-- Format: Return a JSON array of strings only, no additional text`
+- Generate exactly 5-6 options
+- Make each option distinct and actionable`
 
 // Semi-dynamic team context options based on role
 const TEAM_CONTEXT_OPTIONS: Record<string, string[]> = {
@@ -73,6 +86,80 @@ function getTeamContextOptions(role: string): string[] {
       'Distributed team',
     ]
   )
+}
+
+// Build cache key from context
+function buildCacheKey(step: string, context: any): string {
+  const role = context.role || 'unknown'
+  const industry = Array.isArray(context.industry) 
+    ? context.industry.sort().join('|') 
+    : context.industry || 'unknown'
+  
+  return `${step}-${role}-${industry}`.toLowerCase().replace(/\s+/g, '-')
+}
+
+// Check cache for existing options
+async function getCachedOptions(cacheKey: string): Promise<string[] | null> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('options_cache')
+      .select('options, hit_count')
+      .eq('cache_key', cacheKey)
+      .single()
+
+    if (error || !data) {
+      return null
+    }
+
+    // Update hit count and last_used_at
+    await supabaseAdmin
+      .from('options_cache')
+      .update({
+        hit_count: (data.hit_count || 0) + 1,
+        last_used_at: new Date().toISOString()
+      })
+      .eq('cache_key', cacheKey)
+
+    return data.options as string[]
+  } catch (error) {
+    console.error('Cache lookup error:', error)
+    return null
+  }
+}
+
+// Store options in cache
+async function setCachedOptions(
+  cacheKey: string,
+  step: string,
+  role: string,
+  industry: string,
+  options: string[]
+): Promise<void> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('options_cache')
+      .upsert({
+        cache_key: cacheKey,
+        step,
+        role,
+        industry,
+        options,
+        hit_count: 0,
+        created_at: new Date().toISOString(),
+        last_used_at: new Date().toISOString()
+      })
+      .select()
+    
+    if (error) {
+      console.error('Cache storage error:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+    } else {
+      console.log(`✅ Cached options for ${cacheKey}`)
+    }
+  } catch (error) {
+    console.error('Cache storage exception:', error)
+    // Don't fail the request if cache storage fails
+  }
 }
 
 function buildPrompt(step: string, context: any): string {
@@ -137,49 +224,99 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ options })
     }
 
-    // Handle fully dynamic steps with GPT-4o-mini
+    // Handle fully dynamic steps with GPT-5-mini (with caching)
     if (['tasks', 'tools', 'problems'].includes(step)) {
+      // Build cache key
+      const cacheKey = buildCacheKey(step, context)
+      
+      // Check cache first
+      const cachedOptions = await getCachedOptions(cacheKey)
+      if (cachedOptions) {
+        console.log(`Cache HIT for ${cacheKey}`)
+        return NextResponse.json({ 
+          options: cachedOptions,
+          cached: true 
+        })
+      }
+      
+      console.log(`Cache MISS for ${cacheKey} - generating with LLM`)
+      
+      // Generate with LLM
       const prompt = buildPrompt(step, context)
+      
+      // Extract role and industry for caching
+      const role = context.role || 'unknown'
+      const industry = Array.isArray(context.industry) 
+        ? context.industry.join(' and ') 
+        : context.industry || 'unknown'
 
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt },
         ],
-        temperature: 0.7,
-        max_tokens: 300,
-        response_format: { type: 'json_object' },
+        // GPT-5-mini only supports temperature: 1 (default), so we omit it
+        // Using structured outputs to reduce reasoning tokens and enforce schema
+        max_completion_tokens: 500,
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'options_response',
+            schema: {
+              type: 'object',
+              properties: {
+                options: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Array of 5-6 contextually relevant options'
+                }
+              },
+              required: ['options'],
+              additionalProperties: false
+            },
+            strict: true
+          }
+        }
       })
+
+      // Check if we have choices and content
+      if (!completion.choices || completion.choices.length === 0) {
+        console.error('OpenAI returned no choices:', JSON.stringify(completion, null, 2))
+        throw new Error('No choices returned from OpenAI')
+      }
 
       const responseContent = completion.choices[0].message.content
       if (!responseContent) {
-        throw new Error('No response from OpenAI')
+        console.error('OpenAI returned empty content. Full response:', JSON.stringify(completion, null, 2))
+        console.log('Falling back to default options')
+        const fallbackOptions = getFallbackOptions(step)
+        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
+        return NextResponse.json({ 
+          options: fallbackOptions,
+          cached: false,
+          fallback: true 
+        })
       }
 
-      // Parse the JSON response
-      const parsed = JSON.parse(responseContent)
-
-      // Handle different possible response formats
-      let options: string[]
-      if (Array.isArray(parsed)) {
-        options = parsed
-      } else if (parsed.options && Array.isArray(parsed.options)) {
-        options = parsed.options
-      } else if (parsed.items && Array.isArray(parsed.items)) {
-        options = parsed.items
-      } else {
-        // Try to extract any array from the response
-        const firstArray = Object.values(parsed).find(val => Array.isArray(val))
-        options = firstArray as string[] || []
-      }
+      // Parse the JSON response - structured outputs guarantee { options: [...] } format
+      const parsed = JSON.parse(responseContent) as { options: string[] }
+      
+      let options: string[] = parsed.options || []
 
       if (!options || options.length === 0) {
         // Fallback options if generation fails
+        console.log('Empty options array from LLM, using fallback')
         options = getFallbackOptions(step)
       }
+      
+      // Store in cache for future use
+      await setCachedOptions(cacheKey, step, role, industry, options)
 
-      return NextResponse.json({ options })
+      return NextResponse.json({ 
+        options,
+        cached: false 
+      })
     }
 
     return NextResponse.json({ error: 'Invalid step' }, { status: 400 })

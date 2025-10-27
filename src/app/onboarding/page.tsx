@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, Sparkles, Loader2, ArrowRight } from 'lucide-react'
+import { Eye, Sparkles, Loader2, ArrowRight, Info } from 'lucide-react'
 
 // Types
-type StepType = 'role' | 'industry' | 'team' | 'tasks' | 'tools' | 'problems' | 'complete'
+type StepType = 'role' | 'industry' | 'team' | 'tasks' | 'tools' | 'problems' | 'preferences' | 'complete'
 
 interface OnboardingState {
   clientId: string
@@ -17,6 +17,7 @@ interface OnboardingState {
     tasks?: string[]
     tools?: string[]
     problems?: string[]
+    preferences?: string
   }
   conversationHistory: Message[]
   startedAt: Date
@@ -64,6 +65,11 @@ export default function OnboardingPage() {
   const [customInput, setCustomInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null)
+  const [editingValue, setEditingValue] = useState('')
+  const [editingOptions, setEditingOptions] = useState<string[]>([])
+  const [hasEditChanges, setHasEditChanges] = useState(false)
+  const [showSecurityTooltip, setShowSecurityTooltip] = useState(false)
 
   // Initialize or resume session
   useEffect(() => {
@@ -156,19 +162,21 @@ export default function OnboardingPage() {
     setMessages((prev) => [...prev, questionMsg])
   }
 
-  const generateOptions = async (step: StepType, currentState: OnboardingState) => {
+  const generateOptions = async (step: StepType, currentState: OnboardingState, isRegeneration: boolean = false) => {
     setIsGenerating(true)
     
-    // Add question first
-    const question = getStepQuestion(step)
-    const questionMsg: Message = {
-      type: 'question',
-      content: question,
-      timestamp: Date.now(),
-      step,
-      options: [], // Will be filled after generation
+    // Only add question if this is not a regeneration
+    if (!isRegeneration) {
+      const question = getStepQuestion(step)
+      const questionMsg: Message = {
+        type: 'question',
+        content: question,
+        timestamp: Date.now(),
+        step,
+        options: [], // Will be filled after generation
+      }
+      setMessages((prev) => [...prev, questionMsg])
     }
-    setMessages((prev) => [...prev, questionMsg])
     
     try {
       const response = await fetch('/api/onboarding/generate-options', {
@@ -185,14 +193,16 @@ export default function OnboardingPage() {
       setCurrentOptions(generatedOptions)
       
       // Update the question message with options
-      setMessages((prev) => {
-        const updated = [...prev]
-        const lastMsg = updated[updated.length - 1]
-        if (lastMsg && lastMsg.type === 'question') {
-          lastMsg.options = generatedOptions
-        }
-        return updated
-      })
+      if (!isRegeneration) {
+        setMessages((prev) => {
+          const updated = [...prev]
+          const lastMsg = updated[updated.length - 1]
+          if (lastMsg && lastMsg.type === 'question') {
+            lastMsg.options = generatedOptions
+          }
+          return updated
+        })
+      }
     } catch (error) {
       console.error('Error generating options:', error)
       setCurrentOptions([])
@@ -209,6 +219,7 @@ export default function OnboardingPage() {
       tasks: 'What are your main work activities?',
       tools: 'What tools and frameworks do you use?',
       problems: 'What challenges are you looking to solve?',
+      preferences: 'Anything else you\'d like to share?',
       complete: '',
     }
     return questions[step]
@@ -217,11 +228,12 @@ export default function OnboardingPage() {
   const getStepHint = (step: StepType): string => {
     const hints: Record<StepType, string> = {
       role: 'Select your role or type a custom one',
-      industry: 'You can select multiple industries',
+      industry: 'Select multiple or add your own',
       team: 'Describe your team structure',
       tasks: 'Select tasks or describe your own',
-      tools: 'Select all that apply',
+      tools: 'Select all that apply or add your own',
       problems: 'What pain points do you face?',
+      preferences: 'What type of AI content would be most helpful for you?',
       complete: '',
     }
     return hints[step]
@@ -243,7 +255,7 @@ export default function OnboardingPage() {
   }
 
   const canSkip = (step: StepType): boolean => {
-    return ['team', 'tasks', 'problems'].includes(step)
+    return ['team', 'tasks', 'problems', 'preferences'].includes(step)
   }
 
   const isRequired = (step: StepType): boolean => {
@@ -254,16 +266,28 @@ export default function OnboardingPage() {
     if (!state) return
 
     const step = state.currentStep
-    let answer: string | string[] = selectedOptions.length > 0 ? selectedOptions : customInput
+    let answer: string | string[]
 
-    // Handle multi-select fields
+    // Handle multi-select fields (can combine options + custom input)
     if (['industry', 'tasks', 'tools', 'problems'].includes(step)) {
+      const combinedAnswers: string[] = []
+      
+      // Add selected options
       if (selectedOptions.length > 0) {
-        answer = selectedOptions
-      } else if (customInput.trim()) {
-        answer = [customInput.trim()]
+        combinedAnswers.push(...selectedOptions)
       }
+      
+      // Add custom input if provided
+      if (customInput.trim()) {
+        combinedAnswers.push(customInput.trim())
+      }
+      
+      answer = combinedAnswers
+    } else if (step === 'preferences') {
+      // Preferences is text-only, no options
+      answer = customInput.trim()
     } else {
+      // Single-select fields like role/team (option OR custom input, not both)
       answer = selectedOptions[0] || customInput.trim()
     }
 
@@ -291,6 +315,7 @@ export default function OnboardingPage() {
       tasks: 'tasks',
       tools: 'tools',
       problems: 'problems',
+      preferences: 'preferences',
       complete: 'role', // dummy
     }
 
@@ -319,6 +344,103 @@ export default function OnboardingPage() {
 
     // Load next step
     await loadStep(nextStep, newState)
+  }
+
+  const handleEditAnswer = async (answerIndex: number, newValue: string, newOptions?: string[]) => {
+    if (!state) return
+    
+    // Update the messages
+    const updatedMessages = [...messages]
+    const answerMsg = updatedMessages[answerIndex]
+    
+    if (answerMsg && answerMsg.type === 'answer') {
+      // Update the answer content
+      const finalValue = newOptions && newOptions.length > 0 
+        ? newOptions.join(', ')
+        : newValue
+      
+      answerMsg.content = finalValue
+      answerMsg.selectedAnswer = newOptions && newOptions.length > 0 ? newOptions : finalValue
+      answerMsg.timestamp = Date.now()
+      
+      setMessages(updatedMessages)
+      
+      // Update state responses
+      const questionIndex = answerIndex - 1
+      const questionMsg = updatedMessages[questionIndex]
+      
+      if (questionMsg && questionMsg.type === 'question') {
+        const editedStep = questionMsg.step
+        const newResponses = { ...state.responses }
+        
+        const fieldMap: Record<StepType, keyof OnboardingState['responses']> = {
+          role: 'role',
+          industry: 'industry',
+          team: 'teamContext',
+          tasks: 'tasks',
+          tools: 'tools',
+          problems: 'problems',
+          preferences: 'preferences',
+          complete: 'role',
+        }
+        
+        const field = fieldMap[editedStep]
+        if (field) {
+          // Handle multi-select vs single select
+          if (['industry', 'tasks', 'tools', 'problems'].includes(editedStep)) {
+            // @ts-ignore
+            newResponses[field] = newOptions && newOptions.length > 0 
+              ? newOptions 
+              : finalValue.split(', ').filter(v => v.trim())
+          } else {
+            // @ts-ignore
+            newResponses[field] = finalValue
+          }
+        }
+        
+        const newState: OnboardingState = {
+          ...state,
+          responses: newResponses,
+          conversationHistory: updatedMessages,
+        }
+        
+        setState(newState)
+        saveState(newState)
+        
+        // Check if we need to regenerate current options based on the edited step
+        const currentStep = state.currentStep
+        const needsRegeneration = shouldRegenerateOptions(editedStep, currentStep)
+        
+        if (needsRegeneration && ['team', 'tasks', 'tools', 'problems'].includes(currentStep)) {
+          console.log(`🔄 Regenerating options for ${currentStep} due to ${editedStep} change`)
+          await generateOptions(currentStep, newState, true) // true = isRegeneration
+        }
+      }
+    }
+    
+    // Clear editing state
+    setEditingMessageIndex(null)
+    setEditingValue('')
+    setEditingOptions([])
+    setHasEditChanges(false)
+  }
+  
+  // Determine if options need regeneration based on edited step
+  const shouldRegenerateOptions = (editedStep: StepType, currentStep: StepType): boolean => {
+    // Map of which steps depend on which previous steps
+    const dependencies: Record<StepType, StepType[]> = {
+      role: [],
+      industry: [],
+      team: ['role'],
+      tasks: ['role', 'industry', 'team'],
+      tools: ['role', 'industry', 'team', 'tasks'],
+      problems: ['role', 'industry', 'team', 'tasks', 'tools'],
+      preferences: [],
+      complete: [],
+    }
+    
+    const currentDeps = dependencies[currentStep] || []
+    return currentDeps.includes(editedStep)
   }
 
   const handleSkip = async () => {
@@ -355,7 +477,7 @@ export default function OnboardingPage() {
   }
 
   const getNextStep = (current: StepType): StepType => {
-    const flow: StepType[] = ['role', 'industry', 'team', 'tasks', 'tools', 'problems', 'complete']
+    const flow: StepType[] = ['role', 'industry', 'team', 'tasks', 'tools', 'problems', 'preferences', 'complete']
     const currentIndex = flow.indexOf(current)
     return flow[currentIndex + 1] || 'complete'
   }
@@ -417,11 +539,53 @@ export default function OnboardingPage() {
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
+      {/* Persistent Top Right Note */}
+      {state && state.currentStep !== 'complete' && (
+        <div className="fixed top-6 right-6 z-50">
+          <div 
+            className="relative inline-flex items-center space-x-2.5 px-5 py-3 bg-gradient-to-r from-seer-primary/10 via-purple-400/10 to-seer-primary/10 backdrop-blur-xl rounded-full border border-white/40 shadow-lg cursor-pointer"
+            onMouseEnter={() => setShowSecurityTooltip(true)}
+            onMouseLeave={() => setShowSecurityTooltip(false)}
+          >
+            <Sparkles className="w-4 h-4 text-seer-primary/70" />
+            <span className="text-xs md:text-sm text-slate-700 font-light italic">
+              Share more context, unlock better content
+            </span>
+            <Info className="w-3.5 h-3.5 text-slate-400" />
+            
+            {/* Security Tooltip */}
+            {showSecurityTooltip && (
+              <div className="absolute top-full right-0 mt-2 w-80 p-4 bg-slate-900 text-white text-xs leading-relaxed rounded-xl shadow-2xl z-50">
+                <div className="absolute -top-2 right-6 w-4 h-4 bg-slate-900 transform rotate-45"></div>
+                <p className="font-light">
+                  We store your onboarding context in a managed Postgres database (Supabase). Data is encrypted at rest and in transit, protected by row-level security and role-based access. Only authorized services can access it, and we log access for auditing.
+                </p>
+            </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Gradient Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#4ECDC4]/10 rounded-full blur-[140px] animate-float-slow" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#4ECDC4]/8 rounded-full blur-[140px] animate-float-medium" />
-        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[#4ECDC4]/5 rounded-full blur-[100px] animate-pulse-opacity" />
+        {/* Large gradient orbs */}
+        <div className="absolute -top-40 -right-40 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-br from-seer-primary/20 to-seer-accent/18 md:from-seer-primary/30 md:to-seer-accent/25 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-1/3 -left-40 w-72 md:w-80 h-72 md:h-80 bg-gradient-to-tr from-seer-accent/22 to-seer-primary/20 md:from-seer-accent/35 md:to-seer-primary/30 rounded-full blur-3xl animate-float-medium" />
+        <div className="absolute top-[60%] right-1/3 w-64 md:w-72 h-64 md:h-72 bg-gradient-to-bl from-seer-primary/20 to-seer-accent/18 md:from-seer-primary/28 md:to-seer-accent/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-[10%] -left-20 w-80 md:w-96 h-80 md:h-96 bg-gradient-to-tr from-seer-primary/18 to-seer-accent/20 md:from-seer-primary/25 md:to-seer-accent/30 rounded-full blur-3xl animate-float-medium" style={{ animationDelay: '5s' }} />
+        <div className="absolute bottom-[30%] right-[10%] w-72 md:w-80 h-72 md:h-80 bg-gradient-to-bl from-seer-accent/20 to-seer-primary/18 md:from-seer-accent/30 md:to-seer-primary/25 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '7s' }} />
+        
+        {/* Animated dots with movement */}
+        <div className="absolute top-20 left-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-40 right-1/3 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-60 left-1/3 w-3 md:w-4 h-3 md:h-4 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[70%] right-1/4 w-2 md:w-3 h-2 md:h-3 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[50%] left-1/5 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-1/2 right-1/5 w-3 md:w-5 h-3 md:h-5 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '2.5s' }} />
+        <div className="absolute bottom-40 left-2/3 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-2" style={{ animationDelay: '1.2s' }} />
+        <div className="absolute top-1/4 right-2/3 w-3 md:w-4 h-3 md:h-4 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-[85%] left-1/2 w-2 md:w-3 h-2 md:h-3 bg-seer-primary opacity-60 md:opacity-100 rounded-full animate-float-dot-3" style={{ animationDelay: '4s' }} />
+        <div className="absolute bottom-[15%] right-1/2 w-1.5 md:w-2 h-1.5 md:h-2 bg-seer-accent opacity-60 md:opacity-100 rounded-full animate-float-dot-1" style={{ animationDelay: '2.8s' }} />
             </div>
 
       {/* Scrollable Content */}
@@ -454,22 +618,53 @@ export default function OnboardingPage() {
                       <p className="text-base text-slate-500/80 font-light">{getStepHint(msg.step)}</p>
                     </div>
                     
-                    {/* Options (disabled/readonly state) */}
+                    {/* Options (editable) */}
                     {questionOptions.length > 0 && (
                       <div className="flex flex-wrap gap-3 justify-center">
                         {questionOptions.map((option) => {
-                          const isSelected = Array.isArray(selectedAnswer) 
-                            ? selectedAnswer.includes(option)
-                            : selectedAnswer === option
+                          const isEditing = editingMessageIndex === i + 1
+                          const isSelected = isEditing
+                            ? editingOptions.includes(option)
+                            : Array.isArray(selectedAnswer) 
+                              ? selectedAnswer.includes(option)
+                              : selectedAnswer === option
                           
                           return (
                             <button
                               key={option}
-                              disabled
-                              className={`px-6 py-3 rounded-full text-sm font-light backdrop-blur-xl shadow-lg ${
+                              onClick={() => {
+                                if (!isEditing) {
+                                  // Start editing mode
+                                  setEditingMessageIndex(i + 1)
+                                  const currentAnswer = Array.isArray(selectedAnswer) ? selectedAnswer : [selectedAnswer].filter(Boolean) as string[]
+                                  setEditingOptions(currentAnswer)
+                                  setEditingValue(Array.isArray(nextMsg.content) ? nextMsg.content.join(', ') : nextMsg.content as string)
+                                }
+                                
+                                // Toggle option
+                                const questionMsg = messages[i]
+                                if (questionMsg && questionMsg.type === 'question') {
+                                  const step = questionMsg.step
+                                  const isMultiSelect = ['industry', 'tasks', 'tools', 'problems'].includes(step)
+                                  
+                                  if (isMultiSelect) {
+                                    setEditingOptions(prev => 
+                                      prev.includes(option) 
+                                        ? prev.filter(o => o !== option)
+                                        : [...prev, option]
+                                    )
+                                  } else {
+                                    setEditingOptions([option])
+                                  }
+                                  setHasEditChanges(true)
+                                }
+                              }}
+                              className={`px-6 py-3 rounded-full text-sm font-light backdrop-blur-xl shadow-lg transition-all ${
                                 isSelected
                                   ? 'bg-[#4ECDC4] text-white border-2 border-white/40 shadow-2xl shadow-[#4ECDC4]/30'
-                                  : 'bg-white/40 border-2 border-white/60 text-slate-700 opacity-60'
+                                  : isEditing
+                                    ? 'bg-white/60 border-2 border-white/70 text-slate-700 hover:bg-white/80 hover:scale-105 cursor-pointer'
+                                    : 'bg-white/40 border-2 border-white/60 text-slate-700 opacity-60 hover:opacity-100 hover:scale-105 cursor-pointer'
                               }`}
                             >
                               {option}
@@ -481,15 +676,61 @@ export default function OnboardingPage() {
                     
                     {/* Answer shown as input value */}
                     {isAnswer && (
-                      <div className="space-y-6">
-                        <div className="relative">
+                      <div className="space-y-4">
+                        <div className="relative group">
                           <input
                             type="text"
-                            value={Array.isArray(nextMsg.content) ? nextMsg.content.join(', ') : nextMsg.content as string}
-                            disabled
-                            className="w-full bg-transparent border-b-2 border-[#4ECDC4]/50 outline-none py-4 text-slate-900 text-center font-light text-xl"
+                            value={
+                              editingMessageIndex === i + 1
+                                ? editingValue
+                                : Array.isArray(nextMsg.content) ? nextMsg.content.join(', ') : nextMsg.content as string
+                            }
+                            onChange={(e) => {
+                              if (editingMessageIndex === i + 1) {
+                                setEditingValue(e.target.value)
+                                setHasEditChanges(true)
+                              }
+                            }}
+                            onFocus={() => {
+                              setEditingMessageIndex(i + 1)
+                              const currentAnswer = Array.isArray(selectedAnswer) ? selectedAnswer : [selectedAnswer].filter(Boolean) as string[]
+                              setEditingOptions(currentAnswer)
+                              setEditingValue(Array.isArray(nextMsg.content) ? nextMsg.content.join(', ') : nextMsg.content as string)
+                            }}
+                            className="w-full bg-transparent border-b-2 border-[#4ECDC4]/50 hover:border-[#4ECDC4]/70 focus:border-[#4ECDC4] outline-none py-4 text-slate-900 text-center font-light text-xl cursor-pointer transition-all"
+                            placeholder="Click to edit..."
                           />
+                          {editingMessageIndex !== i + 1 && (
+                            <p className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                              Click to edit
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Update button when editing */}
+                        {editingMessageIndex === i + 1 && hasEditChanges && (
+                          <div className="flex justify-center gap-3">
+                            <button
+                              onClick={() => {
+                                setEditingMessageIndex(null)
+                                setEditingValue('')
+                                setEditingOptions([])
+                                setHasEditChanges(false)
+                              }}
+                              className="px-4 py-2 text-sm font-light text-slate-600 hover:text-slate-900 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleEditAnswer(i + 1, editingValue, editingOptions.length > 0 ? editingOptions : undefined)
+                              }}
+                              className="px-6 py-2 rounded-full bg-[#4ECDC4] text-white text-sm font-light hover:bg-[#45B7B8] transition-all shadow-lg shadow-[#4ECDC4]/30"
+                            >
+                              Update
+                            </button>
                 </div>
+                        )}
                 </div>
               )}
             </div>
@@ -514,9 +755,9 @@ export default function OnboardingPage() {
                 {/* Current Step Options */}
                 <div className="space-y-8 animate-fadeInUp">
               {isGenerating ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#4ECDC4]" />
-                      <span className="ml-4 text-slate-600 font-light text-lg">Generating options...</span>
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#4ECDC4]" />
+                    <span className="ml-4 text-slate-600 font-light text-lg">Finding some common answers for you...</span>
                 </div>
               ) : (
                 <>
@@ -544,21 +785,25 @@ export default function OnboardingPage() {
                 {/* Minimalist Line Input */}
                 <div className="space-y-6">
                   <div className="relative">
-              <input
-                type="text"
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    if (customInput.trim() || selectedOptions.length > 0) {
-                      handleNext()
-                    }
-                  }
-                }}
-                      placeholder="Type your answer..."
+                    <input
+                      type="text"
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          if (customInput.trim() || selectedOptions.length > 0) {
+                            handleNext()
+                          }
+                        }
+                      }}
+                      placeholder={
+                        selectedOptions.length > 0 
+                          ? "Add more (optional)..." 
+                          : "Type your answer..."
+                      }
                       className="w-full bg-transparent border-b-2 border-slate-300/50 focus:border-[#4ECDC4] outline-none py-4 text-slate-900 placeholder:text-slate-400/60 transition-all text-center font-light text-xl"
-              />
+                    />
                   </div>
                   
                   <div className="flex items-center justify-center space-x-6">
