@@ -105,7 +105,6 @@ export default function LandingPage() {
           <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
         <div className="relative">
-        {/*
           <Link 
             href="/onboarding"
             className="seer-btn-primary inline-flex items-center space-x-2"
@@ -113,7 +112,7 @@ export default function LandingPage() {
             <span>Get Started</span>
             <ArrowRight className="w-4 h-4" />
           </Link> 
-          */}
+          {/*
           <button
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
@@ -128,6 +127,7 @@ export default function LandingPage() {
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
             </div>
           )} 
+          */}
         </div>
       </header>
 

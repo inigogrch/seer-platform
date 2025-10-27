@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, X, Code, Target, BarChart3, Atom, Rocket, Users, Sparkles, Send } from 'lucide-react'
+import { Eye, X, Code, Target, BarChart3, Atom, Rocket, Users, Sparkles, ChevronLeft, Check } from 'lucide-react'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -11,11 +11,10 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState({
     role: '',
     industries: [] as string[],
-    projects: [] as string[],
     contentTypes: [] as string[]
   })
 
-  const totalSteps = 3 // Reduced from 4 since we removed search
+  const totalSteps = 3
 
   const roles = [
     { id: 'software-engineer', title: 'Software Engineer', description: 'Building applications and systems', icon: <Code className="w-5 h-5" /> },
@@ -39,50 +38,30 @@ export default function OnboardingPage() {
     'Government & Public Sector'
   ]
 
-  const projectTypes = [
-    'Machine Learning Models',
-    'Natural Language Processing',
-    'Computer Vision',
-    'Robotics & Automation',
-    'Data Analytics',
-    'AI-Powered Applications',
-    'Research & Development',
-    'AI Ethics & Governance',
-    'Edge AI & IoT',
-    'Generative AI'
-  ]
-
   const contentTypes = [
-    { id: 'breaking-news', label: 'Breaking News', selected: false },
-    { id: 'tool-releases', label: 'Tool Releases', selected: true },
-    { id: 'research-papers', label: 'Research Papers', selected: false },
-    { id: 'industry-analysis', label: 'Industry Analysis', selected: false },
-    { id: 'technical-tutorials', label: 'Technical Tutorials', selected: false },
-    { id: 'company-updates', label: 'Company Updates', selected: false },
-    { id: 'funding-investments', label: 'Funding & Investments', selected: false },
-    { id: 'regulatory-changes', label: 'Regulatory Changes', selected: false },
-    { id: 'open-source', label: 'Open Source Projects', selected: false },
-    { id: 'conference-updates', label: 'Conference Updates', selected: false }
+    { id: 'breaking-news', label: 'Breaking News' },
+    { id: 'tool-releases', label: 'Tool Releases' },
+    { id: 'research-papers', label: 'Research Papers' },
+    { id: 'industry-analysis', label: 'Industry Analysis' },
+    { id: 'technical-tutorials', label: 'Technical Tutorials' },
+    { id: 'company-updates', label: 'Company Updates' },
+    { id: 'funding-investments', label: 'Funding & Investments' },
+    { id: 'regulatory-changes', label: 'Regulatory Changes' },
+    { id: 'open-source', label: 'Open Source Projects' },
+    { id: 'conference-updates', label: 'Conference Updates' }
   ]
-
-  const [selectedContentTypes, setSelectedContentTypes] = useState(
-    contentTypes.filter(type => type.selected).map(type => type.id)
-  )
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1)
     } else {
-      // Complete onboarding
       router.push('/dashboard')
     }
   }
 
-  const handleSkip = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1)
-    } else {
-      router.push('/dashboard')
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
     }
   }
 
@@ -90,30 +69,25 @@ export default function OnboardingPage() {
     setFormData({ ...formData, role: roleId })
   }
 
-  const selectIndustry = (industry: string) => {
-    setFormData({ ...formData, industry })
-  }
-
-  const toggleProject = (project: string) => {
-    const projects = formData.projects.includes(project)
-      ? formData.projects.filter(p => p !== project)
-      : [...formData.projects, project]
-    setFormData({ ...formData, projects })
+  const toggleIndustry = (industry: string) => {
+    const industries = formData.industries.includes(industry)
+      ? formData.industries.filter(i => i !== industry)
+      : [...formData.industries, industry]
+    setFormData({ ...formData, industries })
   }
 
   const toggleContentType = (contentTypeId: string) => {
-    setSelectedContentTypes(prev => 
-      prev.includes(contentTypeId)
-        ? prev.filter(id => id !== contentTypeId)
-        : [...prev, contentTypeId]
-    )
+    const contentTypes = formData.contentTypes.includes(contentTypeId)
+      ? formData.contentTypes.filter(id => id !== contentTypeId)
+      : [...formData.contentTypes, contentTypeId]
+    setFormData({ ...formData, contentTypes })
   }
 
   const getStepTitle = () => {
     switch (currentStep) {
       case 1: return "What's your role?"
-      case 2: return "Which industry do you work in?"
-      case 3: return "What type of content interests you?"
+      case 2: return "Which industries interest you?"
+      case 3: return "What type of content do you want?"
       default: return ""
     }
   }
@@ -121,8 +95,8 @@ export default function OnboardingPage() {
   const getStepDescription = () => {
     switch (currentStep) {
       case 1: return "Help us understand your professional background to personalize your AI news feed."
-      case 2: return "We'll curate content relevant to your industry and sector."
-      case 3: return "Select the types of AI content you'd like to see in your daily brief."
+      case 2: return "Select all industries you'd like to follow (you can choose multiple)."
+      case 3: return "Choose the types of AI content you'd like to see in your daily brief."
       default: return ""
     }
   }
@@ -162,41 +136,63 @@ export default function OnboardingPage() {
 
       case 2:
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto">
-            {industries.map((industry) => (
-              <button
-                key={industry}
-                onClick={() => selectIndustry(industry)}
-                className={`seer-card-interactive p-4 text-left transition-all duration-300 ${
-                  formData.industry === industry 
-                    ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
-                    : 'hover:border-seer-teal/30'
-                }`}
-              >
-                <span className="font-medium text-slate-900">{industry}</span>
-              </button>
-            ))}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              {industries.map((industry) => (
+                <button
+                  key={industry}
+                  onClick={() => toggleIndustry(industry)}
+                  className={`seer-card-interactive p-4 text-left transition-all duration-300 relative ${
+                    formData.industries.includes(industry)
+                      ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
+                      : 'hover:border-seer-teal/30'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-slate-900">{industry}</span>
+                    {formData.industries.includes(industry) && (
+                      <div className="w-6 h-6 bg-seer-teal rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 text-center">
+              Selected {formData.industries.length} of {industries.length} industries
+            </p>
           </div>
         )
 
       case 3:
         return (
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
               {contentTypes.map((contentType) => (
                 <button
                   key={contentType.id}
                   onClick={() => toggleContentType(contentType.id)}
-                  className={`seer-card-interactive p-4 text-center transition-all duration-300 ${
-                    selectedContentTypes.includes(contentType.id)
+                  className={`seer-card-interactive p-4 text-center transition-all duration-300 relative ${
+                    formData.contentTypes.includes(contentType.id)
                       ? 'border-seer-teal bg-seer-light-teal/30 shadow-lg shadow-seer-teal/20' 
                       : 'hover:border-seer-teal/30'
                   }`}
                 >
-                  <span className="text-sm font-medium text-slate-900">{contentType.label}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-900 flex-1">{contentType.label}</span>
+                    {formData.contentTypes.includes(contentType.id) && (
+                      <div className="w-5 h-5 bg-seer-teal rounded-full flex items-center justify-center ml-2">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
+            <p className="text-sm text-slate-600 text-center">
+              Selected {formData.contentTypes.length} content types
+            </p>
           </div>
         )
 
@@ -261,21 +257,52 @@ export default function OnboardingPage() {
 
         {renderStepContent()}
 
+        {/* Additional Preferences Input */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <div className="text-center mb-4">
+            <p className="text-sm text-slate-600">
+              Don't see what you're looking for? Add specific topics, companies, or technologies:
+            </p>
+          </div>
+          <div className="flex items-center justify-center space-x-3 max-w-2xl mx-auto">
+            <input
+              type="text"
+              placeholder="e.g., OpenAI, computer vision, robotics, AI ethics..."
+              value={customPreferences}
+              onChange={(e) => setCustomPreferences(e.target.value)}
+              className="seer-input flex-1"
+            />
+            <button 
+              className="seer-btn-ghost"
+              onClick={() => {
+                if (customPreferences.trim()) {
+                  console.log('Custom preferences:', customPreferences)
+                  setCustomPreferences('')
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
         {/* Navigation */}
         <div className="flex items-center justify-between max-w-4xl mx-auto mt-12">
           <button
-            onClick={handleSkip}
-            className="seer-btn-ghost"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="seer-btn-ghost disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center space-x-2"
           >
-            Skip for now
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
           </button>
           
           <button
             onClick={handleNext}
             disabled={
               (currentStep === 1 && !formData.role) ||
-              (currentStep === 2 && !formData.industry) ||
-              (currentStep === 3 && selectedContentTypes.length === 0)
+              (currentStep === 2 && formData.industries.length === 0) ||
+              (currentStep === 3 && formData.contentTypes.length === 0)
             }
             className="seer-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -283,38 +310,6 @@ export default function OnboardingPage() {
           </button>
         </div>
       </main>
-
-      {/* Custom Preferences Input */}
-      <div className="w-full px-6 py-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="seer-card p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Additional Preferences</h3>
-            <p className="text-sm text-slate-600 mb-4">
-              Don't see what you're looking for above? Tell us about any specific AI topics, companies, or technologies you're interested in.
-            </p>
-            <div className="flex items-center space-x-3">
-              <input
-                type="text"
-                placeholder="e.g., OpenAI, computer vision, robotics, AI ethics..."
-                value={customPreferences}
-                onChange={(e) => setCustomPreferences(e.target.value)}
-                className="seer-input flex-1"
-              />
-              <button 
-                className="seer-btn-ghost"
-                onClick={() => {
-                  if (customPreferences.trim()) {
-                    console.log('Custom preferences:', customPreferences)
-                    setCustomPreferences('')
-                  }
-                }}
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
