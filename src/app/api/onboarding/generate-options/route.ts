@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
-
 // Initialize Supabase admin client for caching
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,39 +86,71 @@ function getTeamContextOptions(role: string): string[] {
 
 // Build cache key from context
 function buildCacheKey(step: string, context: any): string {
-  const role = context.role || 'unknown'
+  const role = (context.role || 'unknown').trim()
   const industry = Array.isArray(context.industry) 
     ? context.industry.sort().join('|') 
-    : context.industry || 'unknown'
+    : (context.industry || 'unknown').trim()
   
-  return `${step}-${role}-${industry}`.toLowerCase().replace(/\s+/g, '-')
+  // Normalize to lowercase and replace spaces/special chars with dashes
+  const cacheKey = `${step}-${role}-${industry}`
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/&/g, 'and')
+  
+  return cacheKey
+}
+
+// Normalize industry for storage (consistent format)
+function normalizeIndustry(industry: any): string {
+  if (Array.isArray(industry)) {
+    return industry.sort().join(' | ')
+  }
+  return industry || 'unknown'
 }
 
 // Check cache for existing options
 async function getCachedOptions(cacheKey: string): Promise<string[] | null> {
   try {
+    console.log(`🔍 Looking up cache for key: ${cacheKey}`)
+    
     const { data, error } = await supabaseAdmin
       .from('options_cache')
       .select('options, hit_count')
       .eq('cache_key', cacheKey)
       .single()
 
-    if (error || !data) {
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows found - not an error, just a cache miss
+        console.log(`❌ Cache MISS: ${cacheKey}`)
+      } else {
+        console.error('Cache lookup error:', error)
+      }
       return null
     }
 
-    // Update hit count and last_used_at
-    await supabaseAdmin
+    if (!data) {
+      console.log(`❌ Cache MISS: ${cacheKey}`)
+      return null
+    }
+
+    console.log(`✅ Cache HIT: ${cacheKey} (hit count: ${data.hit_count})`)
+
+    // Update hit count and last_used_at asynchronously (don't wait)
+    supabaseAdmin
       .from('options_cache')
       .update({
         hit_count: (data.hit_count || 0) + 1,
         last_used_at: new Date().toISOString()
       })
       .eq('cache_key', cacheKey)
+      .then(({ error }) => {
+        if (error) console.error('Failed to update hit count:', error)
+      })
 
     return data.options as string[]
   } catch (error) {
-    console.error('Cache lookup error:', error)
+    console.error('Cache lookup exception:', error)
     return null
   }
 }
@@ -131,43 +159,77 @@ async function getCachedOptions(cacheKey: string): Promise<string[] | null> {
 async function setCachedOptions(
   cacheKey: string,
   step: string,
-  role: string,
-  industry: string,
+  context: any,
   options: string[]
 ): Promise<void> {
   try {
+    const role = context.role || 'unknown'
+    const industry = normalizeIndustry(context.industry)
+    
+    console.log(`💾 Storing in cache: ${cacheKey}`)
+    console.log(`   - Step: ${step}`)
+    console.log(`   - Role: ${role}`)
+    console.log(`   - Industry: ${industry}`)
+    console.log(`   - Options count: ${options.length}`)
+    
     const { data, error } = await supabaseAdmin
       .from('options_cache')
-      .upsert({
-        cache_key: cacheKey,
-        step,
-        role,
-        industry,
-        options,
-        hit_count: 0,
-        created_at: new Date().toISOString(),
-        last_used_at: new Date().toISOString()
-      })
+      .upsert(
+        {
+          cache_key: cacheKey,
+          step,
+          role,
+          industry,
+          options,
+          hit_count: 0,
+          last_used_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'cache_key'
+        }
+      )
       .select()
     
     if (error) {
-      console.error('Cache storage error:', error)
+      console.error('❌ Cache storage error:', error)
       console.error('Error details:', JSON.stringify(error, null, 2))
+    } else if (data && data.length > 0) {
+      console.log(`✅ Successfully cached options for ${cacheKey}`)
     } else {
-      console.log(`✅ Cached options for ${cacheKey}`)
+      console.warn(`⚠️ Cache upsert returned no data for ${cacheKey}`)
     }
   } catch (error) {
-    console.error('Cache storage exception:', error)
+    console.error('❌ Cache storage exception:', error)
     // Don't fail the request if cache storage fails
   }
 }
 
 function buildPrompt(step: string, context: any): string {
+  const industryText = Array.isArray(context.industry) 
+    ? context.industry.join(' and ') 
+    : context.industry
+
   switch (step) {
+    case 'team':
+      return `Generate 5-6 team context options for a ${context.role} working in ${industryText}.
+
+Consider typical team structures and setups for this role/industry combination:
+- Team size variations
+- Organizational structures  
+- Working arrangements
+- Reporting structures
+
+Keep each option under 6 words.
+Return as a JSON array of strings.`
+
     case 'tasks':
-      return `Generate 6 daily tasks for a ${context.role} working in ${
-        Array.isArray(context.industry) ? context.industry.join(' and ') : context.industry
-      }${context.teamContext ? ` in a ${context.teamContext} setup` : ''}.
+      const teamText = context.teamContext 
+        ? Array.isArray(context.teamContext)
+          ? ` in a ${context.teamContext.join(' and ')} setup`
+          : ` in a ${context.teamContext} setup`
+        : ''
+      
+      return `Generate 6 daily tasks for a ${context.role} working in ${industryText}${teamText}.
 
 Return specific, actionable tasks this person likely does regularly.
 Keep each task under 4 words.
@@ -176,9 +238,9 @@ Consider industry-specific requirements.
 Return as a JSON array of strings.`
 
     case 'tools':
-      return `List 6-8 tools and frameworks used by a ${context.role} in ${
-        Array.isArray(context.industry) ? context.industry.join(' and ') : context.industry
-      }${context.tasks && context.tasks.length > 0 ? ` who does: ${context.tasks.join(', ')}` : ''}.
+      return `List 6-8 tools and frameworks used by a ${context.role} in ${industryText}${
+        context.tasks && context.tasks.length > 0 ? ` who does: ${context.tasks.join(', ')}` : ''
+      }.
 
 Mix of:
 - Industry-standard tools
@@ -189,11 +251,9 @@ Mix of:
 Return as a JSON array of strings.`
 
     case 'problems':
-      return `Identify 6 specific pain points for a ${context.role} in ${
-        Array.isArray(context.industry) ? context.industry.join(' and ') : context.industry
-      }${context.tools && context.tools.length > 0 ? ` using ${context.tools.join(', ')}` : ''}${
-        context.tasks && context.tasks.length > 0 ? ` for ${context.tasks.join(', ')}` : ''
-      }.
+      return `Identify 6 specific pain points for a ${context.role} in ${industryText}${
+        context.tools && context.tools.length > 0 ? ` using ${context.tools.join(', ')}` : ''
+      }${context.tasks && context.tasks.length > 0 ? ` for ${context.tasks.join(', ')}` : ''}.
 
 Focus on:
 - Workflow inefficiencies
@@ -218,41 +278,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Step is required' }, { status: 400 })
     }
 
-    // Handle semi-dynamic team context
-    if (step === 'team') {
-      const options = getTeamContextOptions(context.role || '')
-      return NextResponse.json({ options })
-    }
-
-    // Handle fully dynamic steps with Claude Haiku 4.5 (with caching)
-    if (['tasks', 'tools', 'problems'].includes(step)) {
+    // Handle dynamic steps with Claude Haiku 4.5 (with caching)
+    if (['team', 'tasks', 'tools', 'problems'].includes(step)) {
       // Build cache key
       const cacheKey = buildCacheKey(step, context)
       
       // Check cache first
       const cachedOptions = await getCachedOptions(cacheKey)
       if (cachedOptions) {
-        console.log(`Cache HIT for ${cacheKey}`)
-        return NextResponse.json({ 
-          options: cachedOptions,
-          cached: true 
-        })
+        // Stream cached options for consistent UX
+        return streamOptions(cachedOptions, true)
       }
       
-      console.log(`Cache MISS for ${cacheKey} - generating with LLM`)
+      // If team step cache miss, try hardcoded fallback first (only for known roles)
+      if (step === 'team' && context.role && TEAM_CONTEXT_OPTIONS[context.role]) {
+        const hardcodedOptions = getTeamContextOptions(context.role)
+        console.log(`Using hardcoded team options for ${context.role}`)
+        // Cache the hardcoded options for next time
+        await setCachedOptions(cacheKey, step, context, hardcodedOptions)
+        return streamOptions(hardcodedOptions, true)
+      }
+      
+      console.log(`🤖 Generating with LLM for ${cacheKey}`)
       
       // Generate with LLM
       const prompt = buildPrompt(step, context)
       
       // Debug logging
       console.log('Context received:', JSON.stringify(context, null, 2))
-      console.log('Prompt being sent:', prompt)
-      
-      // Extract role and industry for caching
-      const role = context.role || 'unknown'
-      const industry = Array.isArray(context.industry) 
-        ? context.industry.join(' and ') 
-        : context.industry || 'unknown'
+      console.log('Prompt:', prompt)
+
+      // Initialize Anthropic client per request to ensure env vars are loaded
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      })
 
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
@@ -269,27 +328,18 @@ export async function POST(req: NextRequest) {
 
       // Check if we have content
       if (!message.content || message.content.length === 0) {
-        console.error('Claude returned no content:', JSON.stringify(message, null, 2))
-        console.log('Falling back to default options')
+        console.error('Claude returned no content')
         const fallbackOptions = getFallbackOptions(step)
-        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
-        return NextResponse.json({ 
-          options: fallbackOptions,
-          cached: false,
-          fallback: true 
-        })
+        await setCachedOptions(cacheKey, step, context, fallbackOptions)
+        return streamOptions(fallbackOptions, true)
       }
 
       // Handle refusal stop reason (new in Claude 4.5)
       if (message.stop_reason === 'refusal') {
-        console.log('Claude refused the request, falling back to default options')
+        console.log('Claude refused the request, using fallback')
         const fallbackOptions = getFallbackOptions(step)
-        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
-        return NextResponse.json({ 
-          options: fallbackOptions,
-          cached: false,
-          fallback: true 
-        })
+        await setCachedOptions(cacheKey, step, context, fallbackOptions)
+        return streamOptions(fallbackOptions, true)
       }
 
       // Extract text content from Claude's response
@@ -297,18 +347,41 @@ export async function POST(req: NextRequest) {
       if (!textContent || textContent.type !== 'text') {
         console.error('No text content in Claude response')
         const fallbackOptions = getFallbackOptions(step)
-        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
-        return NextResponse.json({ 
-          options: fallbackOptions,
-          cached: false,
-          fallback: true 
-        })
+        await setCachedOptions(cacheKey, step, context, fallbackOptions)
+        return streamOptions(fallbackOptions, true)
       }
 
       // Parse the JSON response
-      const parsed = JSON.parse(textContent.text) as { options: string[] }
+      console.log('Raw Claude response:', textContent.text)
       
-      let options: string[] = parsed.options || []
+      let options: string[] = []
+      try {
+        // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+        let cleanedText = textContent.text.trim()
+        if (cleanedText.startsWith('```')) {
+          // Remove opening fence (```json or ```)
+          cleanedText = cleanedText.replace(/^```(?:json)?\n?/, '')
+          // Remove closing fence
+          cleanedText = cleanedText.replace(/\n?```$/, '')
+          cleanedText = cleanedText.trim()
+        }
+        
+        const parsed = JSON.parse(cleanedText)
+        
+        // Handle both formats: {"options": [...]} or just [...]
+        if (Array.isArray(parsed)) {
+          options = parsed
+        } else if (parsed.options && Array.isArray(parsed.options)) {
+          options = parsed.options
+        } else {
+          console.error('Unexpected JSON structure:', parsed)
+          options = getFallbackOptions(step)
+        }
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError)
+        console.error('Failed to parse:', textContent.text)
+        options = getFallbackOptions(step)
+      }
 
       if (!options || options.length === 0) {
         // Fallback options if generation fails
@@ -317,12 +390,10 @@ export async function POST(req: NextRequest) {
       }
       
       // Store in cache for future use
-      await setCachedOptions(cacheKey, step, role, industry, options)
+      await setCachedOptions(cacheKey, step, context, options)
 
-      return NextResponse.json({ 
-        options,
-        cached: false 
-      })
+      // Stream options to frontend
+      return streamOptions(options, false)
     }
 
     return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
@@ -333,15 +404,60 @@ export async function POST(req: NextRequest) {
     const { step } = await req.json().catch(() => ({ step: 'tasks' }))
     const fallbackOptions = getFallbackOptions(step)
 
-    return NextResponse.json({
-      options: fallbackOptions,
-      warning: 'Using fallback options due to generation error',
-    })
+    return streamOptions(fallbackOptions, true)
   }
+}
+
+// Helper function to stream options one by one
+function streamOptions(options: string[], isCached: boolean) {
+  const encoder = new TextEncoder()
+  
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // Send options one by one with slight delay for animation
+        for (let i = 0; i < options.length; i++) {
+          const data = JSON.stringify({ 
+            option: options[i],
+            index: i,
+            total: options.length,
+            cached: isCached
+          }) + '\n'
+          
+          controller.enqueue(encoder.encode(data))
+          
+          // Shorter delay for cached options, longer for generated
+          if (i < options.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, isCached ? 50 : 150))
+          }
+        }
+        
+        // Send completion signal
+        controller.enqueue(encoder.encode(JSON.stringify({ done: true }) + '\n'))
+        controller.close()
+      } catch (error) {
+        controller.error(error)
+      }
+    }
+  })
+  
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+    }
+  })
 }
 
 function getFallbackOptions(step: string): string[] {
   const fallbacks: Record<string, string[]> = {
+    team: [
+      'Solo contributor',
+      'Small team (2-10)',
+      'Medium team (10-50)',
+      'Large organization (50+)',
+      'Distributed team',
+    ],
     tasks: [
       'Product development',
       'Team collaboration',

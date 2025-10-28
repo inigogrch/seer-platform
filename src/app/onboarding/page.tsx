@@ -13,7 +13,7 @@ interface OnboardingState {
   responses: {
     role?: string
     industry?: string | string[]
-    teamContext?: string
+    teamContext?: string | string[]
     tasks?: string[]
     tools?: string[]
     problems?: string[]
@@ -179,9 +179,12 @@ export default function OnboardingPage() {
         content: question,
         timestamp: Date.now(),
         step,
-        options: [], // Will be filled after generation
+        options: [], // Will be filled as they stream in
       }
       setMessages((prev) => [...prev, questionMsg])
+    } else {
+      // Clear current options when regenerating
+      setCurrentOptions([])
     }
     
     try {
@@ -194,21 +197,61 @@ export default function OnboardingPage() {
         }),
       })
 
-      const data = await response.json()
-      const generatedOptions = data.options || []
-      setCurrentOptions(generatedOptions)
-      
-      // Update the question message with options
-      if (!isRegeneration) {
-        setMessages((prev) => {
-          const updated = [...prev]
-          const lastMsg = updated[updated.length - 1]
-          if (lastMsg && lastMsg.type === 'question') {
-            lastMsg.options = generatedOptions
-          }
-          return updated
-        })
+      if (!response.body) {
+        throw new Error('No response body')
       }
+
+      // Read the stream
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      const streamedOptions: string[] = []
+
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) break
+        
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || ''
+        
+        for (const line of lines) {
+          if (!line.trim()) continue
+          
+          try {
+            const data = JSON.parse(line)
+            
+            if (data.done) {
+              // Stream complete
+              break
+            }
+            
+            if (data.option) {
+              // Add option to current options
+              streamedOptions.push(data.option)
+              setCurrentOptions([...streamedOptions])
+              
+              // Update the question message with the new option
+              if (!isRegeneration) {
+                setMessages((prev) => {
+                  const updated = [...prev]
+                  const lastMsg = updated[updated.length - 1]
+                  if (lastMsg && lastMsg.type === 'question') {
+                    lastMsg.options = [...streamedOptions]
+                  }
+                  return updated
+                })
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing stream data:', e)
+          }
+        }
+      }
+      
     } catch (error) {
       console.error('Error generating options:', error)
       setCurrentOptions([])
@@ -249,14 +292,16 @@ export default function OnboardingPage() {
     const step = state?.currentStep
     if (!step) return
 
-    // Handle multi-select for industry, tasks, tools, problems
-    if (['industry', 'tasks', 'tools', 'problems'].includes(step)) {
+    // Handle multi-select for industry, team, tasks, tools, problems
+    if (['industry', 'team', 'tasks', 'tools', 'problems'].includes(step)) {
       setSelectedOptions((prev) =>
         prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
       )
     } else {
-      // Single select for role, team
-      setSelectedOptions([option])
+      // Single select for role - allow deselection
+      setSelectedOptions((prev) =>
+        prev.includes(option) ? [] : [option]
+      )
     }
   }
 
@@ -275,7 +320,7 @@ export default function OnboardingPage() {
     let answer: string | string[]
 
     // Handle multi-select fields (can combine options + custom input)
-    if (['industry', 'tasks', 'tools', 'problems'].includes(step)) {
+    if (['industry', 'team', 'tasks', 'tools', 'problems'].includes(step)) {
       const combinedAnswers: string[] = []
       
       // Add selected options
@@ -293,7 +338,7 @@ export default function OnboardingPage() {
       // Preferences is text-only, no options
       answer = customInput.trim()
     } else {
-      // Single-select fields like role/team (option OR custom input, not both)
+      // Single-select fields like role (option OR custom input, not both)
       answer = selectedOptions[0] || customInput.trim()
     }
 
@@ -393,7 +438,7 @@ export default function OnboardingPage() {
         const field = fieldMap[editedStep]
         if (field) {
           // Handle multi-select vs single select
-          if (['industry', 'tasks', 'tools', 'problems'].includes(editedStep)) {
+          if (['industry', 'team', 'tasks', 'tools', 'problems'].includes(editedStep)) {
             // @ts-ignore
             newResponses[field] = newOptions && newOptions.length > 0 
               ? newOptions 
@@ -651,7 +696,7 @@ export default function OnboardingPage() {
                                 const questionMsg = messages[i]
                                 if (questionMsg && questionMsg.type === 'question') {
                                   const step = questionMsg.step
-                                  const isMultiSelect = ['industry', 'tasks', 'tools', 'problems'].includes(step)
+                                  const isMultiSelect = ['industry', 'team', 'tasks', 'tools', 'problems'].includes(step)
                                   
                                   if (isMultiSelect) {
                                     setEditingOptions(prev => 
@@ -660,7 +705,10 @@ export default function OnboardingPage() {
                                         : [...prev, option]
                                     )
                                   } else {
-                                    setEditingOptions([option])
+                                    // Single select - allow deselection
+                                    setEditingOptions(prev =>
+                                      prev.includes(option) ? [] : [option]
+                                    )
                                   }
                                   setHasEditChanges(true)
                                 }
@@ -759,33 +807,34 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Current Step Options */}
-                <div className="space-y-8 animate-fadeInUp">
-              {isGenerating ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#4ECDC4]" />
-                    <span className="ml-4 text-slate-600 font-light text-lg">Finding some common answers for you...</span>
-                </div>
-              ) : (
-                <>
+                <div className="space-y-8">
+                  {/* Show loading message while generating */}
+                  {isGenerating && currentOptions.length === 0 && (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#4ECDC4]" />
+                      <span className="ml-4 text-slate-600 font-light text-lg">Finding some common answers for you...</span>
+                    </div>
+                  )}
+                  
+                  {/* Show options as they stream in */}
                   {currentOptions.length > 0 && (
-                        <div className="flex flex-wrap gap-3 justify-center">
-                      {currentOptions.map((option) => (
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      {currentOptions.map((option, idx) => (
                         <button
                           key={option}
                           onClick={() => handleOptionSelect(option)}
-                              className={`px-6 py-3 rounded-full text-sm font-light transition-all backdrop-blur-xl shadow-lg ${
+                          className={`px-6 py-3 rounded-full text-sm font-light transition-all backdrop-blur-xl shadow-lg animate-stream-in ${
                             selectedOptions.includes(option)
-                                  ? 'bg-[#4ECDC4] text-white border-2 border-white/40 shadow-2xl shadow-[#4ECDC4]/30 scale-105'
-                                  : 'bg-white/40 border-2 border-white/60 text-slate-700 hover:bg-white/60 hover:border-[#4ECDC4]/40 hover:shadow-xl hover:scale-105'
+                              ? 'bg-[#4ECDC4] text-white border-2 border-white/40 shadow-2xl shadow-[#4ECDC4]/30 scale-105'
+                              : 'bg-white/40 border-2 border-white/60 text-slate-700 hover:bg-white/60 hover:border-[#4ECDC4]/40 hover:shadow-xl hover:scale-105'
                           }`}
+                          style={{ animationDelay: `${idx * 0.05}s` }}
                         >
                           {option}
                         </button>
                       ))}
                     </div>
                   )}
-                </>
-              )}
             </div>
 
                 {/* Minimalist Line Input */}
