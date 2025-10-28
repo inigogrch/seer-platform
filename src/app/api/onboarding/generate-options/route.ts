@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
 // Initialize Supabase admin client for caching
@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ options })
     }
 
-    // Handle fully dynamic steps with GPT-5-mini (with caching)
+    // Handle fully dynamic steps with Claude Haiku 4.5 (with caching)
     if (['tasks', 'tools', 'problems'].includes(step)) {
       // Build cache key
       const cacheKey = buildCacheKey(step, context)
@@ -244,51 +244,32 @@ export async function POST(req: NextRequest) {
       // Generate with LLM
       const prompt = buildPrompt(step, context)
       
+      // Debug logging
+      console.log('Context received:', JSON.stringify(context, null, 2))
+      console.log('Prompt being sent:', prompt)
+      
       // Extract role and industry for caching
       const role = context.role || 'unknown'
       const industry = Array.isArray(context.industry) 
         ? context.industry.join(' and ') 
         : context.industry || 'unknown'
 
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-5-mini',
+      const message = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        temperature: 0.7,
+        system: SYSTEM_PROMPT,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: prompt },
-        ],
-        // GPT-5-mini only supports temperature: 1 (default), so we omit it
-        // Using structured outputs to reduce reasoning tokens and enforce schema
-        max_completion_tokens: 500,
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'options_response',
-            schema: {
-              type: 'object',
-              properties: {
-                options: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Array of 5-6 contextually relevant options'
-                }
-              },
-              required: ['options'],
-              additionalProperties: false
-            },
-            strict: true
+          { 
+            role: 'user', 
+            content: prompt + '\n\nRespond with ONLY a JSON object in this exact format: {"options": ["option1", "option2", ...]}' 
           }
-        }
+        ]
       })
 
-      // Check if we have choices and content
-      if (!completion.choices || completion.choices.length === 0) {
-        console.error('OpenAI returned no choices:', JSON.stringify(completion, null, 2))
-        throw new Error('No choices returned from OpenAI')
-      }
-
-      const responseContent = completion.choices[0].message.content
-      if (!responseContent) {
-        console.error('OpenAI returned empty content. Full response:', JSON.stringify(completion, null, 2))
+      // Check if we have content
+      if (!message.content || message.content.length === 0) {
+        console.error('Claude returned no content:', JSON.stringify(message, null, 2))
         console.log('Falling back to default options')
         const fallbackOptions = getFallbackOptions(step)
         await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
@@ -299,8 +280,33 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      // Parse the JSON response - structured outputs guarantee { options: [...] } format
-      const parsed = JSON.parse(responseContent) as { options: string[] }
+      // Handle refusal stop reason (new in Claude 4.5)
+      if (message.stop_reason === 'refusal') {
+        console.log('Claude refused the request, falling back to default options')
+        const fallbackOptions = getFallbackOptions(step)
+        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
+        return NextResponse.json({ 
+          options: fallbackOptions,
+          cached: false,
+          fallback: true 
+        })
+      }
+
+      // Extract text content from Claude's response
+      const textContent = message.content.find(block => block.type === 'text')
+      if (!textContent || textContent.type !== 'text') {
+        console.error('No text content in Claude response')
+        const fallbackOptions = getFallbackOptions(step)
+        await setCachedOptions(cacheKey, step, role, industry, fallbackOptions)
+        return NextResponse.json({ 
+          options: fallbackOptions,
+          cached: false,
+          fallback: true 
+        })
+      }
+
+      // Parse the JSON response
+      const parsed = JSON.parse(textContent.text) as { options: string[] }
       
       let options: string[] = parsed.options || []
 

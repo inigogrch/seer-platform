@@ -108,13 +108,14 @@ export default function OnboardingPage() {
 
   const saveState = (newState: OnboardingState) => {
     localStorage.setItem('onboarding_state', JSON.stringify(newState))
-    // Also save to backend
+    // Also save to backend for progressive persistence
     saveProgress(newState)
   }
 
   const saveProgress = async (currentState: OnboardingState) => {
+    // Save to database at every step for progressive persistence
     try {
-      await fetch('/api/onboarding/save', {
+      const response = await fetch('/api/onboarding/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,6 +126,11 @@ export default function OnboardingPage() {
           startedAt: currentState.startedAt,
         }),
       })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Error saving progress:', errorData)
+      }
     } catch (error) {
       console.error('Error saving progress:', error)
     }
@@ -215,7 +221,7 @@ export default function OnboardingPage() {
     const questions: Record<StepType, string> = {
       role: "What's your role?",
       industry: 'Which industry best describes your work?',
-      team: 'Tell me about your team setup',
+      team: 'Tell us about your team setup',
       tasks: 'What are your main work activities?',
       tools: 'What tools and frameworks do you use?',
       problems: 'What challenges are you looking to solve?',
