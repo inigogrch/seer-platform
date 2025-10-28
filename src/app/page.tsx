@@ -105,7 +105,6 @@ export default function LandingPage() {
           <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
         </div>
         <div className="relative">
-        {/*
           <Link 
             href="/onboarding"
             className="seer-btn-primary inline-flex items-center space-x-2"
@@ -113,7 +112,7 @@ export default function LandingPage() {
             <span>Get Started</span>
             <ArrowRight className="w-4 h-4" />
           </Link> 
-          */}
+          {/*
           <button
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
@@ -128,6 +127,7 @@ export default function LandingPage() {
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
             </div>
           )} 
+          */}
         </div>
       </header>
 
@@ -142,17 +142,17 @@ export default function LandingPage() {
 
           {/* Main heading */}
           <div>
-            <h1 className="text-4xl md:text-7xl font-semibold tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
+            <h1 className="text-4xl md:text-7xl font-light tracking-tight text-slate-900 mb-3 md:mb-4 leading-none">
               Stay Ahead in AI
             </h1>
-            <h1 className="text-4xl md:text-7xl font-semibold tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
+            <h1 className="text-4xl md:text-7xl font-light tracking-tight seer-text-gradient mb-6 md:mb-8 leading-none">
               Without the Overwhelm
             </h1>
           </div>
 
           {/* Description */}
           <div>
-            <p className="text-base md:text-xl text-slate-600 max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed">
+            <p className="text-base md:text-xl text-slate-600 font-light max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed">
               Seer delivers personalized AI news, blogs, and insights tailored to your role and 
               projects. Get smart summaries, actionable takeaways, and never miss what 
               matters to your career.
@@ -214,7 +214,7 @@ export default function LandingPage() {
             onClick={scrollToFeatures}
             className="group flex flex-col items-center space-y-2 text-slate-400 hover:text-seer-primary transition-colors duration-300 cursor-pointer"
           >
-            <span className="text-xs md:text-sm font-medium">Discover More</span>
+            <span className="text-xs md:text-sm font-light">Discover More</span>
             <ChevronDown className="w-6 md:w-8 h-6 md:h-8 animate-bounce-slow" />
           </button>
         </div>
@@ -224,10 +224,10 @@ export default function LandingPage() {
       <section id="features-section" className="relative z-10 w-full px-6 py-32 min-h-screen">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-20">
-          <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-3 md:mb-4">
+          <h2 className="text-3xl md:text-5xl font-extralight text-slate-900 mb-3 md:mb-4">
             Seer The Future Of AI
           </h2>
-          <p className="text-sm md:text-xl text-slate-600 max-w-5xl mx-auto px-4">
+          <p className="text-sm md:text-xl text-slate-600 font-light max-w-5xl mx-auto px-4">
             Powerful features designed to help tech professionals stay ahead of the coming wave
           </p>
         </div>
@@ -244,10 +244,10 @@ export default function LandingPage() {
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-3">
+                  <h3 className="text-lg md:text-2xl font-light text-slate-900 mb-2 md:mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+                  <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -287,9 +287,9 @@ export default function LandingPage() {
               <Eye className="w-4 md:w-5 h-4 md:h-5 text-white" />
             </div>
             <span className="text-xs md:text-sm font-semibold text-slate-700">Seer</span>
-            <span className="text-xs md:text-sm text-slate-500 hidden sm:inline">AI News for Tech Professionals</span>
+            <span className="text-xs md:text-sm text-slate-500 font-light hidden sm:inline">AI News for Tech Professionals</span>
           </div>
-          <div className="text-xs md:text-sm text-slate-400 text-center md:text-left">
+          <div className="text-xs md:text-sm text-slate-400 font-light text-center md:text-left">
             © 2025 Seer. All rights reserved.
           </div>
         </div>
