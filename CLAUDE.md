@@ -59,6 +59,24 @@ Three distinct Supabase clients are configured in `src/lib/supabase/`:
   - Prevents duplicates via unique constraint on `LOWER(email)`
   - Returns appropriate status for duplicates (200 with message)
 
+- **`/api/onboarding/save`** (POST) - Progressive onboarding persistence
+  - Saves user progress at each onboarding step
+  - Upserts to `onboarding_profiles` table by `client_id`
+  - Enables resume capability if user refreshes/leaves
+
+- **`/api/onboarding/complete`** (POST) - Final onboarding completion
+  - Validates required fields (role, industry, tools)
+  - Marks profile as completed with timestamps
+  - **TODO placeholder**: Calls next agent (retrieval agent) for profile processing
+  - See line 63 in route for agent integration point
+
+- **`/api/onboarding/generate-options`** (POST) - Dynamic option generation with caching
+  - Uses Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) for context-aware option generation
+  - Implements intelligent caching via `options_cache` table (keyed by step + role + industry)
+  - Streams options progressively to frontend for smooth UX
+  - Fallback to hardcoded options on error
+  - Steps: `team` (semi-dynamic), `tasks`/`tools`/`problems` (fully dynamic with LLM)
+
 ### Design System
 
 **Brand Colors** (defined in `tailwind.config.js` and `globals.css`):
@@ -84,8 +102,9 @@ Three distinct Supabase clients are configured in `src/lib/supabase/`:
 
 ### Data Models
 
-Key TypeScript interface (used across dashboard/saved pages):
+Key TypeScript interfaces:
 
+**Story** (used across dashboard/saved pages):
 ```typescript
 interface Story {
   id: string
@@ -104,11 +123,68 @@ interface Story {
 }
 ```
 
+**OnboardingState** (used in `/onboarding`):
+```typescript
+interface OnboardingState {
+  clientId: string  // Generated via crypto.randomUUID()
+  currentStep: 'role' | 'industry' | 'team' | 'tasks' | 'tools' | 'problems' | 'preferences' | 'complete'
+  responses: {
+    role?: string
+    industry?: string | string[]  // Multi-select supported
+    teamContext?: string | string[]
+    tasks?: string[]
+    tools?: string[]
+    problems?: string[]
+    preferences?: string
+  }
+  conversationHistory: Message[]
+  startedAt: Date
+}
+```
+
+**Database Tables**:
+- `waitlist_emails` - Email captures from landing page
+- `onboarding_profiles` - Anonymous user profiles with completed onboarding data
+  - Fields: `client_id` (UUID), `role`, `industry` (jsonb), `team_context`, `tasks` (jsonb), `tools` (jsonb), `problems` (jsonb), `completed`, timestamps
+  - RLS enabled with policies for anonymous access
+  - See `migrations/001_onboarding_profiles.sql` for schema
+- `options_cache` - LLM-generated option cache for onboarding
+  - Keyed by `cache_key` (step-role-industry normalized)
+  - Tracks `hit_count` and `last_used_at` for analytics
+
+## Onboarding Agent Architecture
+
+The `/onboarding` page implements a **dynamic elicitation flow** using progressive context-building:
+
+**Flow**: Role → Industry → Team → Tasks → Tools → Problems → Preferences → Complete
+
+**Key Features**:
+1. **Progressive Elicitation**: Each step builds on previous answers to generate contextual options
+2. **Anonymous Sessions**: Uses `crypto.randomUUID()` for client tracking (no auth required)
+3. **Dual Persistence**:
+   - LocalStorage for resume capability (survives refresh)
+   - Supabase for persistent storage and analytics
+4. **Smart Caching**: LLM-generated options cached in `options_cache` table
+5. **Streaming UX**: Options stream in one-by-one (50ms delay for cached, 150ms for generated)
+6. **Edit Capability**: Users can click previous answers to edit; triggers re-generation if needed
+7. **Multi-select Support**: Industry, team, tasks, tools, problems allow multiple selections
+
+**Option Generation Strategy**:
+- **Static**: Role, Industry (predefined lists)
+- **Semi-dynamic**: Team (role-based hardcoded options with LLM fallback)
+- **Fully dynamic**: Tasks, Tools, Problems (Claude Haiku 4.5 generation with context)
+
+**Security Note**: Top-right tooltip explains data storage (Postgres with RLS, encryption, audit logs)
+
 ## Important Configuration Notes
 
 - **Next.js Config**: API routes are enabled (no static export). `trailingSlash: true` and `images.unoptimized: true`
 - **pnpm Workspace**: Uses `onlyBuiltDependencies` for specific native modules (@tailwindcss/oxide, sharp, unrs-resolver)
-- **Environment Variables**: All Supabase credentials are in `.env.local` (not committed to git)
+- **Environment Variables**: Required in `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+  - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role (server-side only)
+  - `ANTHROPIC_API_KEY` - Claude API key for onboarding option generation
 
 ## Development Workflow
 
@@ -120,6 +196,21 @@ When adding new features:
 4. **Styling**: Extend custom classes in `globals.css` or use Tailwind utilities inline
 5. **Colors**: Use `seer-primary`, `seer-accent`, or Tailwind's slate palette
 
+## Database Migrations
+
+Migrations are stored in `/migrations/` and should be run via Supabase dashboard SQL editor or CLI:
+
+```bash
+# Run migration via Supabase dashboard
+# Navigate to SQL Editor → Copy/paste migration content → Run
+
+# Or via psql
+psql $DATABASE_URL < migrations/001_onboarding_profiles.sql
+```
+
+**Existing Migrations**:
+- `001_onboarding_profiles.sql` - Creates `onboarding_profiles` table with RLS policies
+
 ## Migration Path (Future)
 
 The platform is designed to transition from mock data to real backend:
@@ -127,3 +218,4 @@ The platform is designed to transition from mock data to real backend:
 - Implement user authentication (Supabase Auth patterns already configured)
 - Add real-time features using Supabase subscriptions
 - Store user preferences, saved stories, and collections in database tables
+- **Next agent to build**: Retrieval agent that processes completed onboarding profiles (see TODO in `/api/onboarding/complete/route.ts:63`)
