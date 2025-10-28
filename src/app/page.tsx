@@ -97,37 +97,39 @@ export default function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-4 md:px-6 py-4 md:py-6 w-full">
-        <div className="flex items-center space-x-2 md:space-x-3">
-          <div className="w-8 md:w-10 h-8 md:h-10 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
-            <Eye className="w-5 md:w-6 h-5 md:h-6 text-white" />
-          </div>
-          <span className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
-        </div>
-        <div className="relative">
-          <Link 
-            href="/onboarding"
-            className="seer-btn-primary inline-flex items-center space-x-2"
-          >
-            <span>Get Started</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link> 
-          {/*
-          <button
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            className="seer-btn-primary inline-flex items-center space-x-1.5 md:space-x-2 !px-4 md:!px-6 !py-2 md:!py-3 !text-sm md:!text-base"
-          >
-            <span>Get Started</span>
-            <ArrowRight className="w-3.5 md:w-4 h-3.5 md:h-4" />
-          </button>
-          {showTooltip && (
-            <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-900 text-white text-xs md:text-sm rounded-lg whitespace-nowrap z-50 shadow-lg">
-              Coming Soon
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
+      <header className="sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 w-full">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 bg-seer-primary/10 rounded-lg flex items-center justify-center border border-seer-primary/20">
+              <Eye className="w-5 h-5 text-seer-primary" />
             </div>
-          )} 
-          */}
+            <span className="text-xl font-light text-slate-900 tracking-tight">Seer</span>
+          </div>
+          <div className="relative">
+            <Link
+              href="/onboarding"
+              className="seer-btn-primary inline-flex items-center space-x-2"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            {/*
+            <button
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="seer-btn-primary inline-flex items-center space-x-1.5 md:space-x-2 !px-4 md:!px-6 !py-2 md:!py-3 !text-sm md:!text-base"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="w-3.5 md:w-4 h-3.5 md:h-4" />
+            </button>
+            {showTooltip && (
+              <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-900 text-white text-xs md:text-sm rounded-lg whitespace-nowrap z-50 shadow-lg">
+                Coming Soon
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-slate-900"></div>
+              </div>
+            )}
+            */}
+          </div>
         </div>
       </header>
 
@@ -280,14 +282,14 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-200/50 py-6 md:py-8 backdrop-blur-sm">
-        <div className="w-full px-6 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
-          <div className="flex items-center space-x-2 md:space-x-3">
-            <div className="w-6 md:w-8 h-6 md:h-8 bg-gradient-to-br from-seer-primary to-seer-accent rounded-lg flex items-center justify-center shadow-md shadow-seer-primary/30">
-              <Eye className="w-4 md:w-5 h-4 md:h-5 text-white" />
+      <footer className="relative z-10 bg-white/70 backdrop-blur-xl border-t border-slate-200/60 py-6 md:py-8">
+        <div className="w-full px-6 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-6 md:w-8 h-6 md:h-8 bg-seer-primary/10 rounded-lg flex items-center justify-center border border-seer-primary/20">
+              <Eye className="w-4 md:w-5 h-4 md:h-5 text-seer-primary" />
             </div>
-            <span className="text-xs md:text-sm font-semibold text-slate-700">Seer</span>
-            <span className="text-xs md:text-sm text-slate-500 font-light hidden sm:inline">AI News for Tech Professionals</span>
+            <span className="text-xs md:text-sm font-light text-slate-700">Seer</span>
+            <span className="text-xs md:text-sm text-slate-500 font-extralight hidden sm:inline">AI News for Tech Professionals</span>
           </div>
           <div className="text-xs md:text-sm text-slate-400 font-light text-center md:text-left">
             © 2025 Seer. All rights reserved.
