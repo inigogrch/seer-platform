@@ -212,7 +212,7 @@ export default function DashboardPage() {
         <div className="relative">
           {/* Redesigned Header */}
           <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shadow-lg shadow-slate-200/50">
-            <div className="px-8 py-5">
+            <div className="px-8 py-3 md:py-4">
               <div className="flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center space-x-2.5">
@@ -257,7 +257,7 @@ export default function DashboardPage() {
           {/* Main Content - Full Width */}
           <main className="px-8 py-8">
             {/* Page Title - Minimalist */}
-            <div className={`mb-8 text-center ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
+            <div className={`mb-6 text-center ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
               <h1 className="text-4xl md:text-5xl font-extralight text-slate-900 tracking-tight mb-3">
                 Your Daily Brief
               </h1>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Two-Card Layout: Summary + Trending */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
               {/* Summary Card */}
               <div className="bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-8 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center space-x-2 mb-6">
@@ -334,8 +334,8 @@ export default function DashboardPage() {
             </div>
 
             {/* Featured Stories - Horizontal Scroll */}
-            <div className={`mb-10 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-              <h2 className="text-2xl font-light text-slate-900 mb-6 px-4">Featured Stories</h2>
+            <div className={`mb-4 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+              <h2 className="text-2xl font-light text-slate-900 mb-4 px-4">Featured Stories</h2>
 
               {/* Horizontal scrollable container */}
               <div className="overflow-x-auto overflow-y-visible pb-6 pt-2 -mx-4 px-4 scrollbar-hide">
@@ -343,16 +343,16 @@ export default function DashboardPage() {
                   {featuredStories.map((story, index) => (
                     <article
                       key={story.id}
-                      className={`group bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-6 hover:bg-white/70 hover:border-seer-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer w-[360px] flex-shrink-0 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}
+                      className={`group bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-8 hover:bg-white/70 hover:border-seer-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer w-[400px] flex-shrink-0 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}
                       style={{ animationDelay: `${0.3 + index * 0.05}s` }}
                     >
                       {/* Source */}
-                      <div className="text-xs font-normal text-seer-primary mb-2">
+                      <div className="text-sm font-medium text-seer-primary mb-4">
                         {story.source}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-base font-normal text-slate-900 mb-2 leading-snug line-clamp-2 group-hover:text-seer-primary transition-colors">
+                      <h3 className="text-base font-medium text-slate-900 mb-2 leading-snug line-clamp-2 group-hover:text-seer-primary transition-colors">
                         {story.title}
                       </h3>
 
@@ -404,16 +404,16 @@ export default function DashboardPage() {
                   {remainingStories.map((story, index) => (
                     <article
                       key={story.id}
-                      className={`group bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-6 hover:bg-white/70 hover:border-seer-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}
+                      className={`group bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-8 hover:bg-white/70 hover:border-seer-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}
                       style={{ animationDelay: `${0.3 + index * 0.05}s` }}
                     >
                       {/* Source */}
-                      <div className="text-xs font-normal text-seer-primary mb-2">
+                      <div className="text-sm font-medium text-seer-primary mb-4">
                         {story.source}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-base font-normal text-slate-900 mb-2 leading-snug line-clamp-2 group-hover:text-seer-primary transition-colors">
+                      <h3 className="text-base font-medium text-slate-900 mb-2 leading-snug line-clamp-2 group-hover:text-seer-primary transition-colors">
                         {story.title}
                       </h3>
 
