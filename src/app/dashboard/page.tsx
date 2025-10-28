@@ -211,40 +211,40 @@ export default function DashboardPage() {
       <div className="h-full overflow-y-auto scroll-smooth">
         <div className="relative">
           {/* Redesigned Header */}
-          <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 shadow-sm">
+          <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shadow-lg shadow-slate-200/50">
             <div className="px-8 py-5">
               <div className="flex items-center justify-between">
                 {/* Logo */}
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-seer-teal to-seer-teal-hover rounded-xl flex items-center justify-center shadow-lg shadow-seer-primary/30">
-                    <Eye className="w-6 h-6 text-white" />
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 bg-seer-primary/10 rounded-lg flex items-center justify-center border border-seer-primary/20">
+                    <Eye className="w-5 h-5 text-seer-primary" />
                   </div>
-                  <span className="text-2xl font-bold text-slate-900 tracking-tight">Seer</span>
+                  <span className="text-xl font-light text-slate-900 tracking-tight">Seer</span>
                 </div>
 
                 {/* Navigation */}
                 <nav className="flex items-center space-x-2">
-                  <button className="px-5 py-2.5 text-sm font-medium text-seer-primary bg-seer-primary/10 rounded-xl border border-seer-primary/20 transition-all">
+                  <button className="px-5 py-2.5 text-sm font-normal text-seer-primary bg-seer-primary/10 rounded-xl border border-seer-primary/20 transition-all hover:bg-seer-primary/15">
                     <Grid3X3 className="w-4 h-4 inline mr-2" />
                     Dashboard
                   </button>
                   <button
                     onClick={() => router.push('/chat')}
-                    className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
+                    className="px-5 py-2.5 text-sm font-light text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
                   >
                     <MessageSquare className="w-4 h-4 inline mr-2" />
                     Chat
                   </button>
                   <button
                     onClick={() => router.push('/saved')}
-                    className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
+                    className="px-5 py-2.5 text-sm font-light text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
                   >
                     <Bookmark className="w-4 h-4 inline mr-2" />
                     Saved
                   </button>
                   <button
                     onClick={() => router.push('/profile')}
-                    className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
+                    className="px-5 py-2.5 text-sm font-light text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 rounded-xl transition-all"
                   >
                     <User className="w-4 h-4 inline mr-2" />
                     Profile
@@ -272,7 +272,7 @@ export default function DashboardPage() {
               <div className="bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-8 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center space-x-2 mb-6">
                   <Sparkles className="w-5 h-5 text-seer-primary" />
-                  <h2 className="text-xl font-extralight text-slate-900">Summary</h2>
+                  <h2 className="text-xl font-light text-slate-900">Summary</h2>
                 </div>
                 <div className="space-y-3 text-base text-slate-700 font-extralight leading-relaxed">
                   <p>
@@ -291,7 +291,7 @@ export default function DashboardPage() {
               <div className="bg-white/60 backdrop-blur-xl rounded-2xl border-2 border-slate-200/60 p-8 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center space-x-2 mb-6">
                   <TrendingUp className="w-5 h-5 text-seer-primary" />
-                  <h2 className="text-xl font-extralight text-slate-900">Trending Topics</h2>
+                  <h2 className="text-xl font-light text-slate-900">Trending Topics</h2>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -335,10 +335,10 @@ export default function DashboardPage() {
 
             {/* Featured Stories - Horizontal Scroll */}
             <div className={`mb-10 ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-              <h2 className="text-2xl font-extralight text-slate-900 mb-6 px-4">Featured Stories</h2>
+              <h2 className="text-2xl font-light text-slate-900 mb-6 px-4">Featured Stories</h2>
 
               {/* Horizontal scrollable container */}
-              <div className="overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <div className="overflow-x-auto overflow-y-visible pb-6 pt-2 -mx-4 px-4 scrollbar-hide">
                 <div className="flex space-x-5" style={{ width: 'max-content' }}>
                   {featuredStories.map((story, index) => (
                     <article
@@ -399,8 +399,8 @@ export default function DashboardPage() {
             {/* All Stories Grid (Expandable) */}
             {showAllStories && (
               <div className={`${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
-                <h2 className="text-2xl font-extralight text-slate-900 mb-6 px-4">More Stories</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 px-4">
+                <h2 className="text-2xl font-light text-slate-900 mb-6 px-4">More Stories</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 px-4 pt-2 pb-2">
                   {remainingStories.map((story, index) => (
                     <article
                       key={story.id}
