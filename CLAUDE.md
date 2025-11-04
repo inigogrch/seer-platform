@@ -196,6 +196,249 @@ When adding new features:
 4. **Styling**: Extend custom classes in `globals.css` or use Tailwind utilities inline
 5. **Colors**: Use `seer-primary`, `seer-accent`, or Tailwind's slate palette
 
+## Test-Driven Development (TDD)
+
+This project follows TDD principles. **Always write tests before implementing features.**
+
+### TDD Workflow
+
+Follow the Red-Green-Refactor cycle:
+
+1. **Red**: Write a failing test that defines the desired behavior
+2. **Green**: Write minimal code to make the test pass
+3. **Refactor**: Clean up code while keeping tests green
+
+### Testing Tools & Setup
+
+**Frontend/API Testing (TypeScript):**
+- **Unit/Integration**: Jest + React Testing Library
+- **E2E**: Playwright
+- Run: `pnpm test` (unit), `pnpm test:e2e` (Playwright)
+
+**Agent Testing (Python):**
+- **Unit/Integration**: pytest
+- **LangGraph Testing**: langgraph testing utilities
+- Run: `pytest` (from Python agent directory)
+
+### Test Organization
+
+```
+seer-platform/
+├── src/
+│   ├── app/
+│   │   └── api/
+│   │       └── waitlist/
+│   │           ├── route.ts
+│   │           └── route.test.ts       # Co-located API tests
+│   └── lib/
+│       └── __tests__/                   # Shared library tests
+├── tests/
+│   ├── e2e/                             # Playwright E2E tests
+│   │   ├── onboarding.spec.ts
+│   │   ├── waitlist.spec.ts
+│   │   └── dashboard.spec.ts
+│   └── integration/                     # Integration tests
+└── agents/                              # Python agents (future)
+    └── tests/
+        ├── test_retrieval_agent.py
+        └── test_onboarding_agent.py
+```
+
+### Testing Patterns by Component Type
+
+#### API Routes
+
+```typescript
+// src/app/api/waitlist/route.test.ts
+import { POST } from './route'
+import { NextRequest } from 'next/server'
+
+describe('POST /api/waitlist', () => {
+  it('should add email to waitlist', async () => {
+    const request = new NextRequest('http://localhost:3000/api/waitlist', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'test@example.com' })
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.success).toBe(true)
+  })
+
+  it('should reject duplicate emails', async () => {
+    // Test duplicate handling
+  })
+
+  it('should validate email format', async () => {
+    // Test validation
+  })
+})
+```
+
+#### React Components (Future - when extracting components)
+
+```typescript
+// src/components/WaitlistForm.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react'
+import WaitlistForm from './WaitlistForm'
+
+describe('WaitlistForm', () => {
+  it('should submit valid email', async () => {
+    render(<WaitlistForm />)
+
+    const input = screen.getByLabelText('Email')
+    const button = screen.getByRole('button', { name: /join/i })
+
+    fireEvent.change(input, { target: { value: 'test@example.com' } })
+    fireEvent.click(button)
+
+    expect(await screen.findByText(/thanks/i)).toBeInTheDocument()
+  })
+})
+```
+
+#### E2E User Flows (Playwright)
+
+```typescript
+// tests/e2e/onboarding.spec.ts
+import { test, expect } from '@playwright/test'
+
+test.describe('Onboarding Flow', () => {
+  test('should complete full onboarding', async ({ page }) => {
+    await page.goto('/onboarding')
+
+    // Step 1: Role
+    await page.getByRole('button', { name: /Software Engineer/i }).click()
+
+    // Step 2: Industry
+    await page.getByRole('button', { name: /Technology/i }).click()
+    await page.getByRole('button', { name: 'Continue' }).click()
+
+    // ... continue through all steps
+
+    await expect(page).toHaveURL('/dashboard')
+  })
+})
+```
+
+#### Python Agent Tests (Future)
+
+```python
+# agents/tests/test_retrieval_agent.py
+import pytest
+from agents.retrieval_agent import RetrievalAgent
+
+def test_retrieval_agent_processes_profile():
+    """Test that retrieval agent correctly processes onboarding profile"""
+    agent = RetrievalAgent()
+    profile = {
+        'role': 'Software Engineer',
+        'industry': ['Technology'],
+        'tools': ['Python', 'React']
+    }
+
+    result = agent.process_profile(profile)
+
+    assert result['status'] == 'success'
+    assert 'personalization_data' in result
+```
+
+### TDD for New Features
+
+**Example: Adding a new API endpoint**
+
+1. **Write the test first** (Red):
+```typescript
+// src/app/api/stories/route.test.ts
+describe('GET /api/stories', () => {
+  it('should return personalized stories', async () => {
+    const response = await GET(mockRequest)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.stories).toHaveLength(10)
+    expect(data.stories[0]).toHaveProperty('title')
+  })
+})
+```
+
+2. **Implement minimal code** (Green):
+```typescript
+// src/app/api/stories/route.ts
+export async function GET(request: NextRequest) {
+  // Minimal implementation to pass test
+  return NextResponse.json({
+    stories: [] // Start with empty array
+  })
+}
+```
+
+3. **Refactor** while keeping tests green
+
+### Testing with External Dependencies
+
+**Mocking Supabase:**
+```typescript
+jest.mock('@/lib/supabase/admin', () => ({
+  getAdminClient: () => ({
+    from: jest.fn().mockReturnValue({
+      insert: jest.fn().mockResolvedValue({ data: {}, error: null })
+    })
+  })
+}))
+```
+
+**Mocking Anthropic API:**
+```typescript
+jest.mock('@anthropic-ai/sdk', () => ({
+  Anthropic: jest.fn().mockImplementation(() => ({
+    messages: {
+      create: jest.fn().mockResolvedValue({
+        content: [{ text: 'Mock response' }]
+      })
+    }
+  }))
+}))
+```
+
+### Coverage Goals
+
+- **API Routes**: 80%+ coverage (critical business logic)
+- **Shared Libraries**: 90%+ coverage (reusable utilities)
+- **Agent Logic**: 80%+ coverage (Python agents)
+- **E2E**: Cover all critical user journeys
+
+### When to Write Different Test Types
+
+- **Unit tests**: Pure functions, utilities, business logic
+- **Integration tests**: API routes, database operations, agent workflows
+- **E2E tests**: Complete user flows, cross-page interactions
+
+### CI/CD Integration
+
+Tests run automatically on:
+- Pre-commit hooks (unit tests)
+- Pull request checks (all tests)
+- Pre-deployment (all tests + E2E)
+
+```bash
+# Run all tests before committing
+pnpm test && pnpm test:e2e
+```
+
+### Best Practices
+
+1. **Test behavior, not implementation** - Focus on user-facing outcomes
+2. **Keep tests fast** - Mock external dependencies
+3. **One assertion per test** - Makes failures easier to debug
+4. **Descriptive test names** - Use "should" statements
+5. **Arrange-Act-Assert** - Clear test structure
+6. **Test error cases** - Don't just test the happy path
+7. **Use factories/fixtures** - For consistent test data
+8. **Clean up after tests** - Reset state between tests
+
 ## Database Migrations
 
 Migrations are stored in `/migrations/` and should be run via Supabase dashboard SQL editor or CLI:

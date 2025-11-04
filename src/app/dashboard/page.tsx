@@ -257,7 +257,7 @@ export default function DashboardPage() {
           {/* Main Content - Full Width */}
           <main className="px-8 py-8">
             {/* Page Title - Minimalist */}
-            <div className={`mb-6 text-center ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
+            <div className={`mb-7 text-center ${isVisible ? 'animate-fadeInUp' : 'opacity-0'}`}>
               <h1 className="text-4xl md:text-5xl font-extralight text-slate-900 tracking-tight mb-3">
                 Your Daily Brief
               </h1>

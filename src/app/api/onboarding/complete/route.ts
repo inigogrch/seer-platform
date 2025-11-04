@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate required fields
-    if (!responses.role || !responses.industry || !responses.tools) {
+    if (!responses.role || !responses.industry || !responses.tasks || !responses.tools) {
       return NextResponse.json(
-        { error: 'Missing required fields: role, industry, and tools are required' },
+        { error: 'Missing required fields: role, industry, tasks, and tools are required' },
         { status: 400 }
       )
     }

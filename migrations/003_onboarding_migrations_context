@@ -1,0 +1,30 @@
+-- Migration: Change team_context from text to jsonb for multi-select support
+-- Description: Allows users to select multiple team context options
+
+-- Convert existing text values to jsonb arrays
+-- If team_context is null, keep it null
+-- If team_context has a value, wrap it in a jsonb array
+UPDATE onboarding_profiles 
+SET team_context = jsonb_build_array(team_context::text)
+WHERE team_context IS NOT NULL
+  AND jsonb_typeof(team_context) = 'string';
+
+-- Change column type from text to jsonb
+ALTER TABLE onboarding_profiles 
+ALTER COLUMN team_context TYPE jsonb USING 
+  CASE 
+    WHEN team_context IS NULL THEN NULL
+    ELSE team_context::jsonb
+  END;
+
+-- Set default to empty jsonb array (consistent with other multi-select fields)
+ALTER TABLE onboarding_profiles 
+ALTER COLUMN team_context SET DEFAULT '[]'::jsonb;
+
+-- Update comment
+COMMENT ON COLUMN onboarding_profiles.team_context IS 'User team context - can be single value or array for multi-select';
+
+-- Migration: Make onboarding fields nullable for progressive saving
+ALTER TABLE onboarding_profiles 
+  ALTER COLUMN role DROP NOT NULL,
+  ALTER COLUMN industry DROP NOT NULL;

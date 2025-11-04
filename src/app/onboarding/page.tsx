@@ -306,11 +306,11 @@ export default function OnboardingPage() {
   }
 
   const canSkip = (step: StepType): boolean => {
-    return ['team', 'tasks', 'problems', 'preferences'].includes(step)
+    return ['team', 'problems', 'preferences'].includes(step)
   }
 
   const isRequired = (step: StepType): boolean => {
-    return ['role', 'industry', 'tools'].includes(step)
+    return ['role', 'industry', 'tasks', 'tools'].includes(step)
   }
 
   const handleNext = async () => {
