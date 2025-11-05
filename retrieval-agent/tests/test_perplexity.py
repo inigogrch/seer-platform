@@ -118,10 +118,15 @@ class TestPerplexityClient:
             assert first_result.text == "2024 was a year of experimenting, fast shipping, and putting our latest technologies in the hands of developers. In December 2024, we released the first models in our Gemini 2.0 experimental series."
             # Perplexity doesn't provide scores, so we assign a default
             assert first_result.score == 1.0
-            assert first_result.published_date == "2025-01-23"
+            # Should prefer last_updated (2025-01-25) over date (2025-01-23)
+            assert first_result.published_date == "2025-01-25"
             assert first_result.provider == SearchProvider.PERPLEXITY
             
-            # Check result without date
+            # Check second result (has date but no last_updated, should use date)
+            second_result = results[1]
+            assert second_result.published_date == "2025-01-03"
+            
+            # Check result without any date
             third_result = results[2]
             assert third_result.published_date is None
     
