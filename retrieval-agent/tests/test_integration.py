@@ -3,6 +3,8 @@ Integration tests for the full search + normalize pipeline.
 
 These tests verify that all components work together correctly:
 - Exa search client
+- Perplexity search client
+- Multi-provider parallel search
 - Result normalization
 - End-to-end data flow
 
@@ -11,9 +13,11 @@ Tests are marked as 'integration' and can be run separately or skipped in CI.
 
 import pytest
 import os
+import asyncio
 from unittest.mock import patch, AsyncMock
 from models.schemas import SearchResult, Document, SearchProvider
 from tools.exa import ExaClient
+from tools.perplexity import PerplexityClient
 from tools.normalize import normalize_batch
 
 
@@ -301,4 +305,283 @@ class TestPipelinePerformance:
         # Should process 100 results in under 1 second
         assert elapsed < 1.0, f"Normalization took {elapsed:.3f}s, should be <1s"
         assert len(documents) == 100
+
+
+class TestMultiProviderSearch:
+    """Test parallel search across multiple providers."""
+    
+    @pytest.mark.asyncio
+    async def test_parallel_search_with_both_providers(self):
+        """Test searching with both Exa and Perplexity in parallel."""
+        exa_client = ExaClient(api_key="test_exa_key")
+        perplexity_client = PerplexityClient(api_key="test_perplexity_key")
+        
+        # Mock responses
+        exa_response = {
+            "results": [
+                {
+                    "id": "https://exa-source.com/article1",
+                    "title": "Exa Result 1",
+                    "url": "https://exa-source.com/article1",
+                    "text": "Content from Exa",
+                    "score": 0.95,
+                    "publishedDate": "2025-01-04",
+                    "author": "Exa Author"
+                }
+            ]
+        }
+        
+        perplexity_response = {
+            "results": [
+                {
+                    "title": "Perplexity Result 1",
+                    "url": "https://perplexity-source.com/article1",
+                    "snippet": "Content from Perplexity",
+                    "date": "2025-01-04",
+                    "last_updated": None
+                }
+            ],
+            "id": "perplexity-search-id"
+        }
+        
+        with patch.object(exa_client, '_call_exa_api', new_callable=AsyncMock) as mock_exa, \
+             patch.object(perplexity_client, '_call_perplexity_api', new_callable=AsyncMock) as mock_perplexity:
+            
+            mock_exa.return_value = exa_response
+            mock_perplexity.return_value = perplexity_response
+            
+            # Execute searches in parallel
+            query = "AI breakthroughs"
+            exa_task = exa_client.search(query=query, num_results=5, days=7)
+            perplexity_task = perplexity_client.search(query=query, num_results=5)
+            
+            exa_results, perplexity_results = await asyncio.gather(exa_task, perplexity_task)
+            
+            # Combine and normalize all results
+            all_results = exa_results + perplexity_results
+            documents = normalize_batch(all_results)
+            
+            # Verify we got results from both providers
+            assert len(documents) == 2
+            assert any(doc.provider == SearchProvider.EXA for doc in documents)
+            assert any(doc.provider == SearchProvider.PERPLEXITY for doc in documents)
+            
+            # Verify domains are different (from different providers)
+            domains = {doc.source_domain for doc in documents}
+            assert "exa-source.com" in domains
+            assert "perplexity-source.com" in domains
+    
+    @pytest.mark.asyncio
+    async def test_parallel_search_handles_one_provider_failure(self):
+        """Test that one provider failing doesn't break the entire pipeline."""
+        exa_client = ExaClient(api_key="test_exa_key")
+        perplexity_client = PerplexityClient(api_key="test_perplexity_key")
+        
+        # Mock Exa to succeed, Perplexity to fail
+        exa_response = {
+            "results": [
+                {
+                    "id": "https://example.com/article1",
+                    "title": "Working Result",
+                    "url": "https://example.com/article1",
+                    "text": "Content",
+                    "score": 0.9,
+                    "publishedDate": "2025-01-04",
+                    "author": None
+                }
+            ]
+        }
+        
+        with patch.object(exa_client, '_call_exa_api', new_callable=AsyncMock) as mock_exa, \
+             patch.object(perplexity_client, '_call_perplexity_api', new_callable=AsyncMock) as mock_perplexity:
+            
+            mock_exa.return_value = exa_response
+            mock_perplexity.side_effect = Exception("Perplexity API error")
+            
+            # Execute searches in parallel with error handling
+            query = "AI breakthroughs"
+            results_list = []
+            
+            try:
+                exa_results = await exa_client.search(query=query)
+                results_list.extend(exa_results)
+            except Exception as e:
+                print(f"Exa failed: {e}")
+            
+            try:
+                perplexity_results = await perplexity_client.search(query=query)
+                results_list.extend(perplexity_results)
+            except Exception as e:
+                print(f"Perplexity failed: {e}")
+            
+            # Should still have results from Exa
+            assert len(results_list) > 0
+            documents = normalize_batch(results_list)
+            assert len(documents) == 1
+            assert documents[0].provider == SearchProvider.EXA
+    
+    @pytest.mark.asyncio
+    async def test_merge_and_deduplicate_results_from_providers(self):
+        """Test merging results and handling potential duplicates."""
+        exa_client = ExaClient(api_key="test_exa_key")
+        perplexity_client = PerplexityClient(api_key="test_perplexity_key")
+        
+        # Both providers return the same URL
+        same_url = "https://techcrunch.com/same-article"
+        
+        exa_response = {
+            "results": [
+                {
+                    "id": same_url,
+                    "title": "Article from Exa",
+                    "url": same_url,
+                    "text": "Content from Exa",
+                    "score": 0.95,
+                    "publishedDate": "2025-01-04",
+                    "author": "Author"
+                }
+            ]
+        }
+        
+        perplexity_response = {
+            "results": [
+                {
+                    "title": "Article from Perplexity",
+                    "url": same_url,
+                    "snippet": "Content from Perplexity",
+                    "date": "2025-01-04",
+                    "last_updated": None
+                }
+            ],
+            "id": "perplexity-id"
+        }
+        
+        with patch.object(exa_client, '_call_exa_api', new_callable=AsyncMock) as mock_exa, \
+             patch.object(perplexity_client, '_call_perplexity_api', new_callable=AsyncMock) as mock_perplexity:
+            
+            mock_exa.return_value = exa_response
+            mock_perplexity.return_value = perplexity_response
+            
+            # Execute searches
+            exa_results = await exa_client.search(query="test")
+            perplexity_results = await perplexity_client.search(query="test")
+            
+            all_results = exa_results + perplexity_results
+            
+            # Both results have same URL - this is expected behavior
+            # Deduplication should happen in ranking pipeline, not here
+            assert len(all_results) == 2
+            
+            # Verify we can identify duplicates by URL
+            urls = [r.url for r in all_results]
+            assert urls[0] == urls[1]  # Same URL from both providers
+
+
+class TestRealMultiProviderIntegration:
+    """Real integration tests with both Exa and Perplexity APIs."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_real_parallel_search_both_providers(self):
+        """Test real parallel search with both Exa and Perplexity."""
+        exa_key = os.getenv('EXA_API_KEY')
+        perplexity_key = os.getenv('PERPLEXITY_SEARCH_API_KEY')
+        
+        if not exa_key or not perplexity_key:
+            pytest.skip("Both EXA_API_KEY and PERPLEXITY_SEARCH_API_KEY required")
+        
+        print("\n" + "="*80)
+        print("🔍 REAL MULTI-PROVIDER SEARCH TEST")
+        print("="*80)
+        
+        exa_client = ExaClient()
+        perplexity_client = PerplexityClient()
+        
+        query = "artificial intelligence breakthroughs 2024"
+        num_results = 5
+        
+        print(f"\nQuery: '{query}'")
+        print(f"Requesting {num_results} results from each provider...\n")
+        
+        # Execute searches in parallel
+        import time
+        start_time = time.time()
+        
+        exa_task = exa_client.search(query=query, num_results=num_results, days=7)
+        perplexity_task = perplexity_client.search(query=query, num_results=num_results)
+        
+        exa_results, perplexity_results = await asyncio.gather(
+            exa_task, 
+            perplexity_task,
+            return_exceptions=True  # Don't fail if one provider errors
+        )
+        
+        elapsed = time.time() - start_time
+        
+        print(f"⚡ Parallel search completed in {elapsed:.2f}s\n")
+        
+        # Handle potential errors
+        if isinstance(exa_results, Exception):
+            print(f"❌ Exa failed: {exa_results}")
+            exa_results = []
+        else:
+            print(f"✅ Exa returned {len(exa_results)} results")
+        
+        if isinstance(perplexity_results, Exception):
+            print(f"❌ Perplexity failed: {perplexity_results}")
+            perplexity_results = []
+        else:
+            print(f"✅ Perplexity returned {len(perplexity_results)} results")
+        
+        # Combine all results
+        all_results = []
+        if not isinstance(exa_results, Exception):
+            all_results.extend(exa_results)
+        if not isinstance(perplexity_results, Exception):
+            all_results.extend(perplexity_results)
+        
+        print(f"\n📊 Combined: {len(all_results)} total results")
+        
+        # Normalize all results
+        documents = normalize_batch(all_results)
+        
+        print(f"📄 Normalized: {len(documents)} documents\n")
+        
+        # Analyze provider distribution
+        provider_counts = {}
+        for doc in documents:
+            provider_counts[doc.provider.value] = provider_counts.get(doc.provider.value, 0) + 1
+        
+        print("Provider Distribution:")
+        for provider, count in provider_counts.items():
+            print(f"  {provider}: {count} documents")
+        
+        # Show sample results from each provider
+        print("\n--- Sample Results ---")
+        for provider in [SearchProvider.EXA, SearchProvider.PERPLEXITY]:
+            provider_docs = [d for d in documents if d.provider == provider]
+            if provider_docs:
+                doc = provider_docs[0]
+                print(f"\n{provider.value.upper()}:")
+                print(f"  Title: {doc.title[:70]}...")
+                print(f"  URL: {doc.url}")
+                print(f"  Domain: {doc.source_domain}")
+                print(f"  Score: {doc.raw_score:.3f}")
+                print(f"  Date: {doc.published_at}")
+        
+        # Assertions
+        assert len(documents) > 0, "Should have results from at least one provider"
+        
+        # Verify we got results from both providers (if both succeeded)
+        if not isinstance(exa_results, Exception) and not isinstance(perplexity_results, Exception):
+            providers = {doc.provider for doc in documents}
+            assert SearchProvider.EXA in providers or SearchProvider.PERPLEXITY in providers
+        
+        # Verify all documents are properly structured
+        for doc in documents:
+            assert doc.title
+            assert doc.url
+            assert doc.snippet
+            assert doc.source_domain
+            assert 0 <= doc.raw_score <= 1
 

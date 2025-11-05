@@ -8,8 +8,15 @@ Implements the interface defined by our tests (TDD approach).
 import os
 from typing import List, Optional
 from datetime import datetime, timedelta
+from pathlib import Path
+from dotenv import load_dotenv
 from exa_py import Exa
 from models.schemas import SearchResult, SearchProvider
+
+# Load environment variables from .env files
+# Searches in order: .env, ../.env.local (for Next.js compatibility)
+load_dotenv()  # Load from retrieval-agent/.env if exists
+load_dotenv(Path(__file__).parent.parent.parent / '.env.local')  # Load from root .env.local
 
 
 class ExaClient:

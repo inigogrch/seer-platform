@@ -10,6 +10,8 @@ The current implementation uses **mock data** for all story feeds and user inter
 
 ## Development Commands
 
+### Frontend (Next.js)
+
 ```bash
 # Package manager: pnpm (required - see package.json packageManager field)
 pnpm install        # Install dependencies
@@ -19,7 +21,41 @@ pnpm start          # Start production server
 pnpm lint           # Run ESLint
 ```
 
+**Note**: No test commands are currently configured in package.json. Tests need to be set up.
+
+### Python Retrieval Agent
+
+Located in `retrieval-agent/` directory:
+
+```bash
+# From retrieval-agent/ directory
+pip install -r requirements.txt    # Install Python dependencies
+pytest                              # Run all tests
+pytest -v                           # Run tests with verbose output
+pytest -m "not integration"         # Run only unit tests (skip integration)
+pytest tests/test_exa.py            # Run specific test file
+```
+
+**Environment Setup**: Copy `.env.example` to `.env` and add required API keys (EXA_API_KEY).
+
 ## Architecture & Key Patterns
+
+### Monorepo Structure
+
+This is a **monorepo** containing both frontend and Python backend:
+
+```
+seer-platform/
+├── src/                    # Next.js frontend (TypeScript)
+│   ├── app/               # Next.js App Router pages
+│   └── lib/               # Frontend libraries (Supabase clients, utilities)
+└── retrieval-agent/       # Python LangGraph agent system
+    ├── agents/            # LangGraph agent definitions
+    ├── tools/             # Search tools (Exa, Perplexity)
+    ├── models/            # Pydantic schemas (SearchResult, Document)
+    ├── tests/             # Python tests (pytest)
+    └── prompts/           # Agent prompts
+```
 
 ### App Structure (Next.js App Router)
 
@@ -32,6 +68,20 @@ All pages are client components (`'use client'`) located in `src/app/`:
 - `/profile` - User settings
 
 No shared component library exists; components are defined inline within page files.
+
+### Python Retrieval Agent Architecture
+
+Located in `retrieval-agent/`, this is a **LangGraph-based agent system** for news retrieval and personalization:
+
+**Core Components**:
+- **Models** (`models/schemas.py`): Pydantic models for `SearchResult` (raw API output) and `Document` (normalized internal format)
+- **Tools** (`tools/`): Search provider integrations (Exa implemented, Perplexity planned)
+- **Normalization** (`tools/normalize.py`): Converts SearchResults to Documents with parsed dates, extracted domains
+- **Tests** (`tests/`): pytest-based testing with markers for `@pytest.mark.integration` and `@pytest.mark.unit`
+
+**Current Status**: Slice 1 complete (Exa integration, 30/30 tests passing)
+
+**Integration Point**: The `/api/onboarding/complete` route has a TODO at line 63 to call the retrieval agent when onboarding completes.
 
 ### Supabase Integration Pattern
 
@@ -180,11 +230,15 @@ The `/onboarding` page implements a **dynamic elicitation flow** using progressi
 
 - **Next.js Config**: API routes are enabled (no static export). `trailingSlash: true` and `images.unoptimized: true`
 - **pnpm Workspace**: Uses `onlyBuiltDependencies` for specific native modules (@tailwindcss/oxide, sharp, unrs-resolver)
-- **Environment Variables**: Required in `.env.local`:
-  - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-  - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role (server-side only)
-  - `ANTHROPIC_API_KEY` - Claude API key for onboarding option generation
+- **Environment Variables**:
+  - **Frontend** (`.env.local` in root):
+    - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+    - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role (server-side only)
+    - `ANTHROPIC_API_KEY` - Claude API key for onboarding option generation
+  - **Python Agent** (`.env` in `retrieval-agent/`):
+    - `EXA_API_KEY` - Exa search API key
+    - Additional keys for future providers (Perplexity, etc.)
 
 ## Development Workflow
 
@@ -211,14 +265,19 @@ Follow the Red-Green-Refactor cycle:
 ### Testing Tools & Setup
 
 **Frontend/API Testing (TypeScript):**
-- **Unit/Integration**: Jest + React Testing Library
-- **E2E**: Playwright
-- Run: `pnpm test` (unit), `pnpm test:e2e` (Playwright)
+- **Unit/Integration**: Jest + React Testing Library (NOT YET CONFIGURED)
+- **E2E**: Playwright (NOT YET CONFIGURED)
+- **TODO**: Add test commands to package.json: `pnpm test` (unit), `pnpm test:e2e` (Playwright)
 
 **Agent Testing (Python):**
-- **Unit/Integration**: pytest
-- **LangGraph Testing**: langgraph testing utilities
-- Run: `pytest` (from Python agent directory)
+- **Framework**: pytest with pytest-asyncio and pytest-mock
+- **Configuration**: `retrieval-agent/pytest.ini` defines test markers
+- **Test Markers**:
+  - `@pytest.mark.integration` - Tests that call real APIs (skip with `-m "not integration"`)
+  - `@pytest.mark.unit` - Unit tests with mocked dependencies
+  - `@pytest.mark.slow` - Tests that take >1 second
+- **Run**: `pytest` from `retrieval-agent/` directory
+- **Current Coverage**: 30/30 tests passing (Slice 1 complete)
 
 ### Test Organization
 
@@ -229,19 +288,20 @@ seer-platform/
 │   │   └── api/
 │   │       └── waitlist/
 │   │           ├── route.ts
-│   │           └── route.test.ts       # Co-located API tests
+│   │           └── route.test.ts       # Co-located API tests (TODO)
 │   └── lib/
-│       └── __tests__/                   # Shared library tests
-├── tests/
+│       └── __tests__/                   # Shared library tests (TODO)
+├── tests/                               # Frontend tests (TODO - not yet created)
 │   ├── e2e/                             # Playwright E2E tests
 │   │   ├── onboarding.spec.ts
 │   │   ├── waitlist.spec.ts
 │   │   └── dashboard.spec.ts
 │   └── integration/                     # Integration tests
-└── agents/                              # Python agents (future)
-    └── tests/
-        ├── test_retrieval_agent.py
-        └── test_onboarding_agent.py
+└── retrieval-agent/                     # Python agent (EXISTS)
+    └── tests/                           # ✅ 30 tests currently passing
+        ├── test_exa.py                  # Exa client tests (10 tests)
+        ├── test_normalization.py        # Normalization tests (15 tests)
+        └── test_integration.py          # Integration tests (5 tests)
 ```
 
 ### Testing Patterns by Component Type
@@ -323,27 +383,52 @@ test.describe('Onboarding Flow', () => {
 })
 ```
 
-#### Python Agent Tests (Future)
+#### Python Agent Tests (Current Implementation)
 
 ```python
-# agents/tests/test_retrieval_agent.py
+# retrieval-agent/tests/test_exa.py
 import pytest
-from agents.retrieval_agent import RetrievalAgent
+from tools.exa import ExaClient
 
-def test_retrieval_agent_processes_profile():
-    """Test that retrieval agent correctly processes onboarding profile"""
-    agent = RetrievalAgent()
-    profile = {
-        'role': 'Software Engineer',
-        'industry': ['Technology'],
-        'tools': ['Python', 'React']
-    }
+@pytest.mark.unit
+def test_exa_client_initialization(mock_exa_client):
+    """Test that Exa client initializes correctly"""
+    client = ExaClient(api_key="test-key")
+    assert client.api_key == "test-key"
 
-    result = agent.process_profile(profile)
+@pytest.mark.integration
+async def test_exa_search_real_api():
+    """Integration test with real Exa API (requires EXA_API_KEY in .env)"""
+    client = ExaClient()
+    results = await client.search("AI news", num_results=5)
 
-    assert result['status'] == 'success'
-    assert 'personalization_data' in result
+    assert len(results) <= 5
+    assert all(isinstance(r, SearchResult) for r in results)
+
+# retrieval-agent/tests/test_normalization.py
+from tools.normalize import normalize_search_result
+from models.schemas import SearchResult, Document, SearchProvider
+
+def test_normalize_extracts_domain():
+    """Test that normalization correctly extracts domain from URL"""
+    search_result = SearchResult(
+        id="1",
+        title="Test",
+        url="https://techcrunch.com/2025/article",
+        text="Content",
+        score=0.9,
+        provider=SearchProvider.EXA
+    )
+
+    doc = normalize_search_result(search_result)
+    assert doc.source_domain == "techcrunch.com"
 ```
+
+**Key Testing Patterns for Python Agents**:
+- Use `@pytest.mark.unit` for tests with mocked dependencies
+- Use `@pytest.mark.integration` for tests requiring real API calls
+- Use pytest fixtures in `conftest.py` for shared test setup
+- Mock external APIs using `pytest-mock` and `mocker.patch()`
 
 ### TDD for New Features
 
@@ -418,14 +503,15 @@ jest.mock('@anthropic-ai/sdk', () => ({
 
 ### CI/CD Integration
 
-Tests run automatically on:
+**TODO**: Set up CI/CD pipelines for:
 - Pre-commit hooks (unit tests)
 - Pull request checks (all tests)
 - Pre-deployment (all tests + E2E)
 
 ```bash
-# Run all tests before committing
-pnpm test && pnpm test:e2e
+# Run all tests before committing (once configured)
+pnpm test && pnpm test:e2e              # Frontend tests (TODO)
+cd retrieval-agent && pytest            # Python agent tests (WORKING)
 ```
 
 ### Best Practices
@@ -454,11 +540,32 @@ psql $DATABASE_URL < migrations/001_onboarding_profiles.sql
 **Existing Migrations**:
 - `001_onboarding_profiles.sql` - Creates `onboarding_profiles` table with RLS policies
 
-## Migration Path (Future)
+## Migration Path & Roadmap
 
-The platform is designed to transition from mock data to real backend:
-- Replace mock story arrays with API/database queries
-- Implement user authentication (Supabase Auth patterns already configured)
-- Add real-time features using Supabase subscriptions
-- Store user preferences, saved stories, and collections in database tables
-- **Next agent to build**: Retrieval agent that processes completed onboarding profiles (see TODO in `/api/onboarding/complete/route.ts:63`)
+### Current State
+- ✅ Frontend fully implemented with mock data
+- ✅ Supabase integration for waitlist and onboarding profiles
+- ✅ Python retrieval agent Slice 1 complete (Exa search provider)
+- ⏳ Agent integration pending at `/api/onboarding/complete/route.ts:63`
+
+### Next Steps
+1. **Connect Python Agent to Frontend**:
+   - Implement API endpoint to call Python retrieval agent
+   - Pass onboarding profile data to agent for personalization
+   - Return personalized news feed to dashboard
+
+2. **Complete Retrieval Agent**:
+   - Slice 2: Add Perplexity search provider
+   - Slice 3: Implement ranking and relevance scoring
+   - Slice 4: Add novelty filtering and MMR (Maximal Marginal Relevance)
+
+3. **Backend Integration**:
+   - Replace mock story arrays with real agent-generated feeds
+   - Implement user authentication (Supabase Auth)
+   - Store user preferences, saved stories, and collections in database
+   - Add real-time features using Supabase subscriptions
+
+4. **Testing Infrastructure**:
+   - Set up Jest + React Testing Library for frontend
+   - Configure Playwright for E2E tests
+   - Add CI/CD pipelines

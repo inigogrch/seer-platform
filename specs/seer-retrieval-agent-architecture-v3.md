@@ -1249,7 +1249,7 @@ export default function DashboardPage() {
 
 # Python Service
 EXA_API_KEY=your_exa_key
-PERPLEXITY_API_KEY=your_perplexity_key
+PERPLEXITY_SEARCH_API_KEY=your_perplexity_key
 ANTHROPIC_API_KEY=your_anthropic_key
 OPENAI_API_KEY=your_openai_key
 

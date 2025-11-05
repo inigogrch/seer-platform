@@ -1,6 +1,7 @@
-# Core dependencies for Slice 1: Exa Integration
+# Core dependencies for Slice 1: Exa + Perplexity Integration
 pydantic==2.5.0
 exa-py==1.0.9
+perplexityai==0.1.1
 httpx==0.25.2
 python-dotenv==1.0.0
 
