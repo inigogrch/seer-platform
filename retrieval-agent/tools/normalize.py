@@ -3,10 +3,15 @@ Result normalization utilities.
 
 Converts raw SearchResult objects from APIs into standardized Document objects.
 Handles date parsing, domain extraction, text truncation, and field mapping.
+
+Date Handling Strategy:
+- APIs may return future dates (e.g., journal issue dates)
+- We clamp dates that are suspiciously far in the future
+- published_at is the effective date used for ranking
 """
 
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlparse
 import re
 from models.schemas import SearchResult, Document
@@ -17,6 +22,7 @@ def normalize_search_result(result: SearchResult) -> Document:
     
     Performs:
     - Date string parsing to datetime
+    - Future date clamping (for journal issue dates, etc.)
     - Domain extraction from URL
     - Text truncation to snippet length
     - Field mapping and validation
@@ -27,12 +33,21 @@ def normalize_search_result(result: SearchResult) -> Document:
     Returns:
         Normalized Document object
     """
+    # Parse the date from the API
+    raw_date = _parse_date(result.published_date)
+    
+    # Apply date clamping to handle future dates
+    # (e.g., journal issue dates set months in advance)
+    effective_date = _clamp_future_date(raw_date)
+    
     return Document(
         id=result.id,
         title=result.title,
         url=result.url,
         snippet=_truncate_text(result.text),
-        published_at=_parse_date(result.published_date),
+        published_at=effective_date,  # Clamped effective date for ranking
+        published_online=effective_date,  # For Perplexity, this is last_updated
+        published_issue=raw_date if raw_date != effective_date else None,  # Original if clamped
         source_domain=extract_domain(result.url),
         author=result.author,
         provider=result.provider,
@@ -172,4 +187,54 @@ def _truncate_text(text: str, max_length: int = 1000) -> str:
         truncated = truncated[:last_space]
     
     return truncated.rstrip() + "..."
+
+
+def _clamp_future_date(date: Optional[datetime], max_future_days: int = 14) -> Optional[datetime]:
+    """Clamp dates that are too far in the future to prevent ranking issues.
+    
+    Academic publishers often set publication dates months in advance for
+    journal issues. These future dates should not be used for recency ranking.
+    
+    Strategy:
+    - If date is None, return None
+    - If date is more than max_future_days in the future, clamp to now
+    - Otherwise, return the original date
+    
+    Args:
+        date: Parsed datetime (or None)
+        max_future_days: Maximum acceptable days in the future (default: 14)
+        
+    Returns:
+        Clamped datetime or None
+        
+    Examples:
+        >>> from datetime import datetime, timedelta
+        >>> now = datetime.now()
+        >>> # Date 1 month in future -> clamped to now
+        >>> future = now + timedelta(days=30)
+        >>> _clamp_future_date(future) <= now
+        True
+        >>> # Date 1 week in future -> kept as is
+        >>> near_future = now + timedelta(days=7)
+        >>> _clamp_future_date(near_future) == near_future
+        True
+    """
+    if date is None:
+        return None
+    
+    now = datetime.now()
+    
+    # If date has timezone info, make now timezone-aware too
+    if date.tzinfo is not None:
+        now = datetime.now(date.tzinfo)
+    
+    # Calculate the threshold
+    max_future_threshold = now + timedelta(days=max_future_days)
+    
+    # If date is suspiciously far in the future, clamp it to now
+    if date > max_future_threshold:
+        return now
+    
+    # Otherwise, return the original date
+    return date
 

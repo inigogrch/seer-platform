@@ -51,12 +51,19 @@ class Document(BaseModel):
     
     This is our standardized internal representation with parsed dates,
     extracted domains, and optional embeddings for ranking.
+    
+    Date Handling:
+    - published_online: When the article first appeared online (e.g., "Available online", "Early Access")
+    - published_issue: Official publication/issue date (may be in future for journals)
+    - published_at: The effective date used for ranking (online date preferred, clamped to prevent future dates)
     """
     id: str
     title: str
     url: str
     snippet: str  # Cleaned and truncated text
-    published_at: Optional[datetime] = None  # Parsed datetime
+    published_at: Optional[datetime] = None  # Effective date for ranking (computed)
+    published_online: Optional[datetime] = None  # When first available online
+    published_issue: Optional[datetime] = None  # Official issue/print date
     source_domain: str  # Extracted from URL
     author: Optional[str] = None
     provider: SearchProvider
@@ -71,10 +78,49 @@ class Document(BaseModel):
                 "url": "https://techcrunch.com/2025/01/04/ai-news",
                 "snippet": "Researchers announced a breakthrough in AI reasoning...",
                 "published_at": "2025-01-04T10:00:00Z",
+                "published_online": "2025-01-04T10:00:00Z",
+                "published_issue": None,
                 "source_domain": "techcrurch.com",
                 "author": "Jane Smith",
                 "provider": "exa",
                 "raw_score": 0.92
+            }
+        }
+    }
+
+
+class RankedDoc(BaseModel):
+    """Document after ranking pipeline with scoring metadata.
+    
+    This wraps a Document with all the ranking scores from various stages,
+    allowing us to debug and explain why items are ranked in a certain order.
+    """
+    document: Document
+    final_score: float  # Combined score from all ranking stages
+    rank: int  # Final position in ranking (1-based)
+    
+    # Scoring breakdown (for debugging and explainability)
+    heuristic_score: Optional[float] = None  # Score from heuristics (recency + domain)
+    rrf_score: Optional[float] = None  # Reciprocal Rank Fusion score (future)
+    rerank_score: Optional[float] = None  # LLM reranker score (future)
+    rerank_reason: Optional[str] = None  # Explanation from LLM reranker (future)
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "document": {
+                    "id": "https://techcrunch.com/2025/01/04/ai-news",
+                    "title": "AI Breakthrough: New Model Achieves 95% Accuracy",
+                    "url": "https://techcrunch.com/2025/01/04/ai-news",
+                    "snippet": "Researchers announced a breakthrough...",
+                    "published_at": "2025-01-04T10:00:00Z",
+                    "source_domain": "techcrunch.com",
+                    "provider": "exa",
+                    "raw_score": 0.92
+                },
+                "final_score": 88.5,
+                "rank": 1,
+                "heuristic_score": 88.5
             }
         }
     }

@@ -166,11 +166,17 @@ class PerplexityClient:
         Note: Perplexity doesn't provide relevance scores in search results,
         so we assign rank-based scores (1.0 for first result, decreasing).
         
+        Perplexity provides dual dates:
+        - date: Official publication/issue date
+        - last_updated: When the content was last updated online
+        
+        We store date as published_date and will handle last_updated during normalization.
+        
         Args:
             response: Raw API response dict
             
         Returns:
-            List of SearchResult objects
+            List of SearchResult objects with date metadata
         """
         results = []
         total_results = len(response.get("results", []))
@@ -183,13 +189,18 @@ class PerplexityClient:
             import math
             score = math.exp(-0.2 * (rank - 1))
             
+            # Store the primary date in published_date
+            # We'll need to also capture last_updated for dual-date handling
+            # For now, prefer last_updated if available, else use date
+            primary_date = item.get("last_updated") or item.get("date")
+            
             result = SearchResult(
                 id=item["url"],  # Use URL as ID since Perplexity doesn't provide one
                 title=item["title"],
                 url=item["url"],
                 text=item["snippet"],  # Perplexity calls it 'snippet'
                 score=score,
-                published_date=item.get("date"),
+                published_date=primary_date,  # Use last_updated preferentially
                 author=None,  # Perplexity doesn't provide author info
                 provider=SearchProvider.PERPLEXITY
             )
