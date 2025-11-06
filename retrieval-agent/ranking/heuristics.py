@@ -7,6 +7,8 @@ Fast, interpretable ranking using:
 3. Provider score (original relevance from search API)
 
 Combined using a weighted formula optimized for news/research content.
+
+To upgrade---will add dynamic heuristic ranking based on user preferences and remove any hardcoding. Use dynamic algorithms to rank documents based on user preferences.
 """
 
 from typing import List

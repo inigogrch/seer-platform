@@ -3,6 +3,8 @@ Domain authority scoring for search results.
 
 Provides domain-based scoring to boost high-quality sources and penalize low-quality ones.
 Scores are tiered to make configuration and debugging easier.
+
+To upgrade---will add more domains, remove hardcoded scoring, and include personalizability based on user preferences. For example, if a user is interested in a specific industry, we can boost the scores for sources in that industry.
 """
 
 from typing import Dict
