@@ -1,12 +1,25 @@
-# Core dependencies for Slice 1: Exa + Perplexity Integration
-pydantic==2.5.0
-exa-py==1.0.9
-perplexityai==0.1.1
-httpx==0.25.2
-python-dotenv==1.0.0
+# Seer AI Retrieval Agent Dependencies
+# Python 3.12+ (tested with 3.12.8)
+
+# Core dependencies
+pydantic>=2.5.0,<3.0.0  # Data validation and settings management
+python-dotenv>=1.0.0  # Environment variable management
+
+# HTTP client (used by API SDKs)
+httpx>=0.25.0  # Async HTTP client for API calls
+
+# Search providers
+exa-py>=1.0.9  # Exa AI semantic search
+perplexityai>=0.20.0  # Perplexity Search API (NOTE: package name is 'perplexityai', import as 'perplexity')
+
+# Database
+supabase>=2.0.0  # Supabase Python client for database operations
 
 # Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-mock==3.12.0
+pytest>=7.4.3  # Testing framework
+pytest-asyncio>=0.21.1  # Async support for pytest
+pytest-mock>=3.12.0  # Mocking utilities for tests
 
+# Type checking (optional, for development)
+mypy>=1.5.0
+types-python-dotenv>=1.0.0

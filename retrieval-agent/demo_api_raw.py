@@ -49,7 +49,7 @@ def print_json(obj, title: str):
 async def show_raw_api_data():
     """Fetch and display raw API responses."""
     
-    query = "Claude AI model anthropic"
+    query = "Recent advancements in open-source AI models"
     num_results = 4  # Just 4 results per provider for brevity
     
     print("\n" + "🔍" * 40)

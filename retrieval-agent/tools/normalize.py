@@ -5,9 +5,9 @@ Converts raw SearchResult objects from APIs into standardized Document objects.
 Handles date parsing, domain extraction, text truncation, and field mapping.
 
 Date Handling Strategy:
-- APIs may return future dates (e.g., journal issue dates)
-- We clamp dates that are suspiciously far in the future
-- published_at is the effective date used for ranking
+- APIs may return unreliable/placeholder dates (e.g., far future dates)
+- We reject dates more than 14 days in the future as unreliable
+- published_at is None for documents with unreliable dates
 """
 
 from typing import List, Optional
@@ -22,7 +22,7 @@ def normalize_search_result(result: SearchResult) -> Document:
     
     Performs:
     - Date string parsing to datetime
-    - Future date clamping (for journal issue dates, etc.)
+    - Future date validation (rejects unreliable dates)
     - Domain extraction from URL
     - Text truncation to snippet length
     - Field mapping and validation
@@ -36,8 +36,8 @@ def normalize_search_result(result: SearchResult) -> Document:
     # Parse the date from the API
     raw_date = _parse_date(result.published_date)
     
-    # Apply date clamping to handle future dates
-    # (e.g., journal issue dates set months in advance)
+    # Validate date and reject unreliable future dates
+    # (some sources return placeholder dates months/years ahead)
     effective_date = _clamp_future_date(raw_date)
     
     return Document(
@@ -45,9 +45,9 @@ def normalize_search_result(result: SearchResult) -> Document:
         title=result.title,
         url=result.url,
         snippet=_truncate_text(result.text),
-        published_at=effective_date,  # Clamped effective date for ranking
-        published_online=effective_date,  # For Perplexity, this is last_updated
-        published_issue=raw_date if raw_date != effective_date else None,  # Original if clamped
+        published_at=effective_date,  # Validated date for ranking (None if unreliable)
+        published_online=effective_date,  # Same as published_at
+        published_issue=raw_date if raw_date != effective_date else None,  # Original if rejected
         source_domain=extract_domain(result.url),
         author=result.author,
         provider=result.provider,
@@ -190,14 +190,14 @@ def _truncate_text(text: str, max_length: int = 1000) -> str:
 
 
 def _clamp_future_date(date: Optional[datetime], max_future_days: int = 14) -> Optional[datetime]:
-    """Clamp dates that are too far in the future to prevent ranking issues.
+    """Validate dates and reject unreliable future dates.
     
-    Academic publishers often set publication dates months in advance for
-    journal issues. These future dates should not be used for recency ranking.
+    Some sources return invalid/placeholder dates months in the future.
+    These unreliable dates should not be used for recency ranking.
     
     Strategy:
     - If date is None, return None
-    - If date is more than max_future_days in the future, clamp to now
+    - If date is more than max_future_days in the future, return None (unreliable)
     - Otherwise, return the original date
     
     Args:
@@ -205,14 +205,14 @@ def _clamp_future_date(date: Optional[datetime], max_future_days: int = 14) -> O
         max_future_days: Maximum acceptable days in the future (default: 14)
         
     Returns:
-        Clamped datetime or None
+        Original datetime if valid, None if unreliable or missing
         
     Examples:
         >>> from datetime import datetime, timedelta
         >>> now = datetime.now()
-        >>> # Date 1 month in future -> clamped to now
+        >>> # Date 1 month in future -> rejected as unreliable
         >>> future = now + timedelta(days=30)
-        >>> _clamp_future_date(future) <= now
+        >>> _clamp_future_date(future) is None
         True
         >>> # Date 1 week in future -> kept as is
         >>> near_future = now + timedelta(days=7)
@@ -231,9 +231,9 @@ def _clamp_future_date(date: Optional[datetime], max_future_days: int = 14) -> O
     # Calculate the threshold
     max_future_threshold = now + timedelta(days=max_future_days)
     
-    # If date is suspiciously far in the future, clamp it to now
+    # If date is suspiciously far in the future, reject it as unreliable
     if date > max_future_threshold:
-        return now
+        return None
     
     # Otherwise, return the original date
     return date

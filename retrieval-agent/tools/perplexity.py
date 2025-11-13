@@ -167,10 +167,10 @@ class PerplexityClient:
         so we assign rank-based scores (1.0 for first result, decreasing).
         
         Perplexity provides dual dates:
-        - date: Official publication/issue date
-        - last_updated: When the content was last updated online
+        - date: Official publication/issue date (preferred for recency ranking)
+        - last_updated: When the webpage was last crawled/updated
         
-        We store date as published_date and will handle last_updated during normalization.
+        We prefer 'date' as it reflects actual content publication, not page updates.
         
         Args:
             response: Raw API response dict
@@ -190,9 +190,9 @@ class PerplexityClient:
             score = math.exp(-0.2 * (rank - 1))
             
             # Store the primary date in published_date
-            # We'll need to also capture last_updated for dual-date handling
-            # For now, prefer last_updated if available, else use date
-            primary_date = item.get("last_updated") or item.get("date")
+            # Prefer the actual publication date over last_updated
+            # last_updated reflects when the page was crawled, not when content was published
+            primary_date = item.get("date") or item.get("last_updated")
             
             result = SearchResult(
                 id=item["url"],  # Use URL as ID since Perplexity doesn't provide one
