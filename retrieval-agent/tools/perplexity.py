@@ -9,6 +9,7 @@ Based on documentation: https://docs.perplexity.ai/guides/search-quickstart
 
 import os
 import time
+import asyncio
 from typing import List, Optional
 from pathlib import Path
 from dotenv import load_dotenv
@@ -20,6 +21,17 @@ from tools.logger import log_api_request, log_api_response, log_api_error
 # Searches in order: .env, ../.env.local (for Next.js compatibility)
 load_dotenv()  # Load from retrieval-agent/.env if exists
 load_dotenv(Path(__file__).parent.parent.parent / '.env.local')  # Load from root .env.local
+
+
+def _is_rate_limit_error(error: Exception) -> bool:
+    """Check if error is a rate limit error."""
+    error_str = str(error).lower()
+    return any(phrase in error_str for phrase in [
+        'rate limit',
+        'too many requests',
+        '429',
+        'quota exceeded'
+    ])
 
 
 class PerplexityClient:
@@ -58,9 +70,10 @@ class PerplexityClient:
         num_results: int = 10,
         country: Optional[str] = None,
         search_domain_filter: Optional[List[str]] = None,
-        max_tokens_per_page: int = 1024
+        max_tokens_per_page: int = 1024,
+        max_retries: int = 3
     ) -> List[SearchResult]:
-        """Execute search using Perplexity's Search API.
+        """Execute search using Perplexity's Search API with retry logic.
         
         Args:
             query: Search query string
@@ -68,30 +81,47 @@ class PerplexityClient:
             country: ISO 3166-1 alpha-2 country code (e.g., "US", "GB")
             search_domain_filter: List of domains to limit results (max 20)
             max_tokens_per_page: Content extraction limit (default: 1024)
+            max_retries: Maximum number of retry attempts for rate limits (default: 3)
             
         Returns:
             List of SearchResult objects with normalized data
             
         Raises:
-            Exception: If API call fails
+            Exception: If API call fails after all retries
         """
-        try:
-            # Call the real Perplexity API
-            response = await self._call_perplexity_api(
-                query,
-                max_results=num_results,
-                country=country,
-                search_domain_filter=search_domain_filter,
-                max_tokens_per_page=max_tokens_per_page
-            )
-            
-            # Transform response to our SearchResult schema
-            return self._transform_response(response)
-            
-        except Exception as e:
-            log_api_error("Perplexity", "search", e)
-            # Re-raise with context
-            raise Exception(f"Perplexity search failed: {str(e)}") from e
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Call the real Perplexity API
+                response = await self._call_perplexity_api(
+                    query,
+                    max_results=num_results,
+                    country=country,
+                    search_domain_filter=search_domain_filter,
+                    max_tokens_per_page=max_tokens_per_page
+                )
+                
+                # Transform response to our SearchResult schema
+                return self._transform_response(response)
+                
+            except Exception as e:
+                last_error = e
+                log_api_error("Perplexity", "search", e)
+                
+                # Check if it's a rate limit error
+                if _is_rate_limit_error(e) and attempt < max_retries - 1:
+                    # Exponential backoff: 2s, 4s, 8s
+                    wait_time = 2 ** (attempt + 1)
+                    print(f"⚠️  Perplexity rate limit hit. Retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                    continue
+                
+                # If not a rate limit error or final attempt, raise immediately
+                raise Exception(f"Perplexity search failed: {str(e)}") from e
+        
+        # If we exhausted all retries
+        raise Exception(f"Perplexity search failed after {max_retries} attempts: {str(last_error)}") from last_error
     
     async def _call_perplexity_api(
         self,

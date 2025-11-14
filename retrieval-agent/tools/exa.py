@@ -6,6 +6,7 @@ Implements the interface defined by our tests (TDD approach).
 """
 
 import os
+import asyncio
 from typing import List, Optional
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -17,6 +18,17 @@ from models.schemas import SearchResult, SearchProvider
 # Searches in order: .env, ../.env.local (for Next.js compatibility)
 load_dotenv()  # Load from retrieval-agent/.env if exists
 load_dotenv(Path(__file__).parent.parent.parent / '.env.local')  # Load from root .env.local
+
+
+def _is_rate_limit_error(error: Exception) -> bool:
+    """Check if error is a rate limit error."""
+    error_str = str(error).lower()
+    return any(phrase in error_str for phrase in [
+        'rate limit',
+        'too many requests',
+        '429',
+        'quota exceeded'
+    ])
 
 
 class ExaClient:
@@ -49,35 +61,53 @@ class ExaClient:
         self,
         query: str,
         num_results: int = 10,
-        days: int = 7
+        days: int = 7,
+        max_retries: int = 3
     ) -> List[SearchResult]:
-        """Execute semantic search using Exa's neural API.
+        """Execute semantic search using Exa's neural API with retry logic.
         
         Args:
             query: Search query string
             num_results: Maximum number of results to return (default: 10)
             days: Number of days back to search (default: 7)
+            max_retries: Maximum number of retry attempts for rate limits (default: 3)
             
         Returns:
             List of SearchResult objects with normalized data
             
         Raises:
-            Exception: If API call fails
+            Exception: If API call fails after all retries
         """
-        try:
-            # Call the real Exa API
-            response = await self._call_exa_api(
-                query,
-                num_results=num_results,
-                days=days
-            )
-            
-            # Transform response to our SearchResult schema
-            return self._transform_response(response)
-            
-        except Exception as e:
-            # Re-raise with context
-            raise Exception(f"Exa search failed: {str(e)}") from e
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Call the real Exa API
+                response = await self._call_exa_api(
+                    query,
+                    num_results=num_results,
+                    days=days
+                )
+                
+                # Transform response to our SearchResult schema
+                return self._transform_response(response)
+                
+            except Exception as e:
+                last_error = e
+                
+                # Check if it's a rate limit error
+                if _is_rate_limit_error(e) and attempt < max_retries - 1:
+                    # Exponential backoff: 2s, 4s, 8s
+                    wait_time = 2 ** (attempt + 1)
+                    print(f"⚠️  Exa rate limit hit. Retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                    continue
+                
+                # If not a rate limit error or final attempt, raise immediately
+                raise Exception(f"Exa search failed: {str(e)}") from e
+        
+        # If we exhausted all retries
+        raise Exception(f"Exa search failed after {max_retries} attempts: {str(last_error)}") from last_error
     
     async def _call_exa_api(
         self,
