@@ -1,0 +1,26 @@
+{
+  // Python configuration for retrieval-agent
+  "python.defaultInterpreterPath": "/Users/benjogerochi/miniforge3/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/retrieval-agent"
+  ],
+
+  // Basedpyright configuration
+  "basedpyright.analysis.extraPaths": [
+    "${workspaceFolder}/retrieval-agent"
+  ],
+
+  // Make basedpyright less strict for external packages
+  "basedpyright.analysis.diagnosticSeverityOverrides": {
+    "reportMissingModuleSource": "none"
+  },
+
+  // Python testing
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "retrieval-agent/tests"
+  ],
+
+  // Auto-activate environment
+  "python.terminal.activateEnvironment": true
+}

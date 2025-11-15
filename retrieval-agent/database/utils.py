@@ -5,6 +5,8 @@ Helpers for data transformation and formatting.
 """
 
 from typing import Optional
+from datetime import datetime
+from models.schemas import RankedDoc, Story
 
 
 def format_source_display_name(domain: str) -> str:
@@ -143,4 +145,53 @@ def truncate_summary(text: str, max_length: int = 200) -> str:
         return truncated[:last_space] + "..."
     
     return truncated + "..."
+
+
+def ranked_doc_to_story(ranked_doc: RankedDoc, user_id: str) -> Story:
+    """Convert a RankedDoc to a Story for database storage.
+
+    Args:
+        ranked_doc: RankedDoc with ranking scores
+        user_id: User ID who owns this story
+
+    Returns:
+        Story object ready for database insertion
+    """
+    doc = ranked_doc.document
+    now = datetime.utcnow()
+
+    return Story(
+        # Core identity
+        id=doc.id,
+        title=doc.title,
+        url=doc.url,
+        summary=truncate_summary(doc.snippet, max_length=200),
+
+        # Source metadata
+        source_domain=doc.source_domain,
+        source_display_name=format_source_display_name(doc.source_domain),
+        author=doc.author,
+        published_at=doc.published_at,
+
+        # AI enrichment (placeholder - will be added by LLM agent later)
+        content_type=None,
+        ai_tags=[],
+
+        # Ranking metadata
+        final_score=ranked_doc.final_score,
+        rank=ranked_doc.rank,
+        provider=doc.provider,
+        raw_score=doc.raw_score,
+
+        # User interaction state
+        user_id=user_id,
+        is_read=False,
+        is_saved=False,
+        user_rating=None,
+        user_notes=None,
+
+        # Timestamps
+        retrieved_at=now,
+        added_to_brief_at=now
+    )
 

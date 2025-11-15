@@ -27,35 +27,65 @@ pnpm lint           # Run ESLint
 
 Located in `retrieval-agent/` directory:
 
+**Prerequisites**: Python 3.11+ (tested with 3.12.8)
+
 ```bash
 # From retrieval-agent/ directory
 pip install -r requirements.txt    # Install Python dependencies
-pytest                              # Run all tests
+pytest                              # Run all tests (111 tests)
 pytest -v                           # Run tests with verbose output
 pytest -m "not integration"         # Run only unit tests (skip integration)
 pytest tests/test_exa.py            # Run specific test file
+pytest tests/test_perplexity.py     # Run Perplexity tests
+pytest tests/test_ranking.py        # Run ranking pipeline tests
+pytest tests/test_database.py       # Run database tests
+
+# Demo scripts
+python demo_api_raw.py              # View raw API responses and field population
+python demo_ranking.py              # Test ranking pipeline with real data
+python run_e2e_test.py --query "AI news" --verbose  # End-to-end test
 ```
 
-**Environment Setup**: Copy `.env.example` to `.env` and add required API keys (EXA_API_KEY).
+**Environment Setup**: Create `.env` file in `retrieval-agent/` with required API keys:
+- `EXA_API_KEY` - Exa AI search API key
+- `PERPLEXITY_API_KEY` - Perplexity AI search API key
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_KEY` - Supabase service role key
+
+**Important**: The Perplexity package has different names for installation vs import:
+- Install: `pip install perplexityai`
+- Import: `from perplexity import Perplexity`
+
+**IDE Setup**: VS Code is configured to use the miniforge3 Python interpreter:
+`.vscode/settings.json` - Python interpreter path and analysis settings
+`pyrightconfig.json` - Type checking configuration for basedpyright
+Reload VS Code window after changes to resolve import errors
 
 ## Architecture & Key Patterns
 
 ### Monorepo Structure
 
-This is a **monorepo** containing both frontend and Python backend:
+This is a **monorepo** containing both frontend and Python backend with **clear separation of concerns**:
 
 ```
 seer-platform/
 ├── src/                    # Next.js frontend (TypeScript)
 │   ├── app/               # Next.js App Router pages
-│   └── lib/               # Frontend libraries (Supabase clients, utilities)
+│   ├── lib/               # Frontend libraries (Supabase clients, utilities)
+│   ├── data/              # Frontend data (SQL setup scripts for waitlist)
+│   └── migrations/        # Frontend migrations (onboarding_profiles, options_cache)
 └── retrieval-agent/       # Python LangGraph agent system
-    ├── agents/            # LangGraph agent definitions
-    ├── tools/             # Search tools (Exa, Perplexity)
-    ├── models/            # Pydantic schemas (SearchResult, Document)
-    ├── tests/             # Python tests (pytest)
-    └── prompts/           # Agent prompts
+    ├── database/          # Backend database (schema.sql, Supabase client)
+    ├── tools/             # Search tools (Exa, Perplexity, normalization)
+    ├── models/            # Pydantic schemas (SearchResult, Document, Story, etc.)
+    ├── ranking/           # Ranking pipeline (heuristics, domain authority)
+    └── tests/             # Python tests (pytest, 111 tests)
 ```
+
+**Key Separation**:
+- **`src/data/` + `src/migrations/`**: Frontend-only tables (waitlist, onboarding profiles, options cache)
+- **`retrieval-agent/database/`**: Backend tables for content retrieval (stories, briefs, sections, preferences, logs)
 
 ### App Structure (Next.js App Router)
 
@@ -74,12 +104,14 @@ No shared component library exists; components are defined inline within page fi
 Located in `retrieval-agent/`, this is a **LangGraph-based agent system** for news retrieval and personalization:
 
 **Core Components**:
-- **Models** (`models/schemas.py`): Pydantic models for `SearchResult` (raw API output) and `Document` (normalized internal format)
-- **Tools** (`tools/`): Search provider integrations (Exa implemented, Perplexity planned)
+- **Models** (`models/schemas.py`): Pydantic models for `SearchResult`, `Document`, `RankedDoc`, `Story`, `BriefSection`, `DailyBrief`
+- **Tools** (`tools/`): Search provider integrations (Exa and Perplexity both implemented)
+- **Ranking** (`ranking/`): Multi-stage ranking pipeline with domain authority and recency scoring
+- **Database** (`database/`): Supabase client with full CRUD operations for stories, briefs, and user preferences
 - **Normalization** (`tools/normalize.py`): Converts SearchResults to Documents with parsed dates, extracted domains
-- **Tests** (`tests/`): pytest-based testing with markers for `@pytest.mark.integration` and `@pytest.mark.unit`
+- **Tests** (`tests/`): pytest-based testing with markers for `@pytest.mark.integration`, `@pytest.mark.unit`, `@pytest.mark.database`, `@pytest.mark.slow`
 
-**Current Status**: Slice 1 complete (Exa integration, 30/30 tests passing)
+**Current Status**: Slices 1-3 complete (Search, Ranking, Database - 111 tests passing)
 
 **Integration Point**: The `/api/onboarding/complete` route has a TODO at line 63 to call the retrieval agent when onboarding completes.
 
@@ -192,15 +224,24 @@ interface OnboardingState {
 }
 ```
 
-**Database Tables**:
+**Frontend Database Tables** (see `src/migrations/` and `src/data/sql/`):
 - `waitlist_emails` - Email captures from landing page
+  - Schema: `src/data/sql/waitlist_setup.sql`
 - `onboarding_profiles` - Anonymous user profiles with completed onboarding data
   - Fields: `client_id` (UUID), `role`, `industry` (jsonb), `team_context`, `tasks` (jsonb), `tools` (jsonb), `problems` (jsonb), `completed`, timestamps
   - RLS enabled with policies for anonymous access
-  - See `migrations/001_onboarding_profiles.sql` for schema
+  - Schema: `src/migrations/001_onboarding_profiles.sql`
 - `options_cache` - LLM-generated option cache for onboarding
   - Keyed by `cache_key` (step-role-industry normalized)
   - Tracks `hit_count` and `last_used_at` for analytics
+  - Schema: `src/migrations/002_options_cache.sql`
+
+**Backend Database Tables** (see `retrieval-agent/database/schema.sql`):
+- `stories` - Individual content items with AI enrichment and user interaction state
+- `daily_briefs` - Complete daily brief metadata with sections and statistics
+- `brief_sections` - Thematic groupings of stories (featured, interest-based, topic-based, etc.)
+- `user_preferences` - User profile and personalization settings from onboarding
+- `retrieval_logs` - Audit trail for search operations and API calls
 
 ## Onboarding Agent Architecture
 
@@ -238,7 +279,10 @@ The `/onboarding` page implements a **dynamic elicitation flow** using progressi
     - `ANTHROPIC_API_KEY` - Claude API key for onboarding option generation
   - **Python Agent** (`.env` in `retrieval-agent/`):
     - `EXA_API_KEY` - Exa search API key
-    - Additional keys for future providers (Perplexity, etc.)
+    - `PERPLEXITY_API_KEY` - Perplexity search API key
+    - `SUPABASE_URL` - Supabase project URL
+    - `SUPABASE_KEY` - Supabase anonymous key
+    - `SUPABASE_SERVICE_KEY` - Supabase service role key (for elevated permissions)
 
 ## Development Workflow
 
@@ -275,9 +319,10 @@ Follow the Red-Green-Refactor cycle:
 - **Test Markers**:
   - `@pytest.mark.integration` - Tests that call real APIs (skip with `-m "not integration"`)
   - `@pytest.mark.unit` - Unit tests with mocked dependencies
+  - `@pytest.mark.database` - Tests that interact with the database
   - `@pytest.mark.slow` - Tests that take >1 second
 - **Run**: `pytest` from `retrieval-agent/` directory
-- **Current Coverage**: 30/30 tests passing (Slice 1 complete)
+- **Current Coverage**: 111 tests passing (Slices 1-3 complete: Search, Ranking, Database)
 
 ### Test Organization
 
@@ -298,10 +343,14 @@ seer-platform/
 │   │   └── dashboard.spec.ts
 │   └── integration/                     # Integration tests
 └── retrieval-agent/                     # Python agent (EXISTS)
-    └── tests/                           # ✅ 30 tests currently passing
-        ├── test_exa.py                  # Exa client tests (10 tests)
-        ├── test_normalization.py        # Normalization tests (15 tests)
-        └── test_integration.py          # Integration tests (5 tests)
+    └── tests/                           # ✅ 111 tests currently passing
+        ├── test_exa.py                  # Exa client tests
+        ├── test_perplexity.py           # Perplexity client tests
+        ├── test_normalization.py        # Normalization tests
+        ├── test_ranking.py              # Ranking pipeline tests
+        ├── test_database.py             # Database operations tests
+        ├── test_supabase_integration.py # Supabase integration tests
+        └── test_integration.py          # End-to-end integration tests
 ```
 
 ### Testing Patterns by Component Type
@@ -527,45 +576,79 @@ cd retrieval-agent && pytest            # Python agent tests (WORKING)
 
 ## Database Migrations
 
-Migrations are stored in `/migrations/` and should be run via Supabase dashboard SQL editor or CLI:
+### Frontend Migrations
+
+Located in `src/migrations/` - these support the Next.js onboarding flow and waitlist:
 
 ```bash
-# Run migration via Supabase dashboard
+# Run migrations via Supabase dashboard
 # Navigate to SQL Editor → Copy/paste migration content → Run
 
 # Or via psql
-psql $DATABASE_URL < migrations/001_onboarding_profiles.sql
+psql $DATABASE_URL < src/migrations/001_onboarding_profiles.sql
+psql $DATABASE_URL < src/migrations/002_options_cache.sql
+
+# Waitlist setup
+psql $DATABASE_URL < src/data/sql/waitlist_setup.sql
 ```
 
-**Existing Migrations**:
+**Frontend Migrations**:
 - `001_onboarding_profiles.sql` - Creates `onboarding_profiles` table with RLS policies
+- `002_options_cache.sql` - Creates `options_cache` table for LLM-generated options caching
+- `003_onboarding_migrations_context` - Migration documentation and context
+
+### Backend Database Schema
+
+Located in `retrieval-agent/database/schema.sql` - complete schema for the retrieval agent:
+
+```bash
+# Complete database schema for retrieval agent (480 lines)
+# Includes: stories, daily_briefs, brief_sections, user_preferences, retrieval_logs
+psql $SUPABASE_URL < retrieval-agent/database/schema.sql
+```
+
+**Schema Features**:
+- PostgreSQL with pgvector extension for embeddings
+- Row-Level Security (RLS) enabled on all tables
+- Optimized indexes for read-heavy workload
+- JSONB columns for flexible metadata storage
 
 ## Migration Path & Roadmap
 
 ### Current State
 - ✅ Frontend fully implemented with mock data
 - ✅ Supabase integration for waitlist and onboarding profiles
-- ✅ Python retrieval agent Slice 1 complete (Exa search provider)
+- ✅ Python retrieval agent infrastructure complete:
+  - ✅ Slice 1: Multi-provider search (Exa + Perplexity)
+  - ✅ Slice 2: Ranking pipeline (domain authority, recency scoring, heuristics)
+  - ✅ Slice 3: Database layer (Supabase client with full CRUD operations, 5 tables)
+  - ⏳ Slice 4: LangGraph agent workflow (IN PROGRESS)
 - ⏳ Agent integration pending at `/api/onboarding/complete/route.ts:63`
 
 ### Next Steps
-1. **Connect Python Agent to Frontend**:
+1. **Complete Retrieval Agent Workflow** (Slice 4):
+   - Implement LangGraph workflow for orchestrating search, ranking, and brief generation
+   - Add LLM reranking with Claude
+   - Implement MMR diversity selection
+   - Add novelty filtering vs recent briefs
+
+2. **Build FastAPI Service** (Slice 5):
+   - Create FastAPI application to expose retrieval agent
+   - Implement SSE streaming for real-time progress updates
+   - Add job management and error handling
+
+3. **Connect Python Agent to Frontend**:
    - Implement API endpoint to call Python retrieval agent
    - Pass onboarding profile data to agent for personalization
    - Return personalized news feed to dashboard
 
-2. **Complete Retrieval Agent**:
-   - Slice 2: Add Perplexity search provider
-   - Slice 3: Implement ranking and relevance scoring
-   - Slice 4: Add novelty filtering and MMR (Maximal Marginal Relevance)
-
-3. **Backend Integration**:
+4. **Backend Integration**:
    - Replace mock story arrays with real agent-generated feeds
    - Implement user authentication (Supabase Auth)
    - Store user preferences, saved stories, and collections in database
    - Add real-time features using Supabase subscriptions
 
-4. **Testing Infrastructure**:
+5. **Testing Infrastructure**:
    - Set up Jest + React Testing Library for frontend
    - Configure Playwright for E2E tests
    - Add CI/CD pipelines

@@ -1,0 +1,32 @@
+{
+  "include": [
+    "retrieval-agent"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".next",
+    "out",
+    "build",
+    "dist"
+  ],
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Darwin",
+  "executionEnvironments": [
+    {
+      "root": "retrieval-agent",
+      "pythonVersion": "3.12",
+      "pythonPlatform": "Darwin",
+      "extraPaths": [
+        "retrieval-agent"
+      ]
+    }
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none",
+  "reportMissingTypeStubs": false,
+  "reportUnknownMemberType": "none",
+  "reportUnknownParameterType": "none",
+  "reportUnknownVariableType": "none",
+  "reportUnknownArgumentType": "none"
+}
